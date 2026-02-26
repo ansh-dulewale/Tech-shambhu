@@ -75,13 +75,13 @@
 
 ### State Encoding
 
-Resources are discretized into 3 levels (LOW/MED/HIGH) across 4 resources = 3⁴ = 81 possible states. With additional context (has_partners, recent_event), total states ≈ 200-300. This keeps the Q-table manageable.
+Resources are discretized into 5 levels across 4 resources = 5⁴ = 625 base states. With additional context (has_partners, recent_event), total state space ≈ 5,000. This provides enough granularity for nuanced emergent strategies while keeping the Q-table tractable.
 
 ```
-Water: 0-30 = LOW, 31-60 = MED, 61-100 = HIGH
-Food:  0-30 = LOW, 31-60 = MED, 61-100 = HIGH
-Energy: 0-30 = LOW, 31-60 = MED, 61-100 = HIGH
-Land:  0-30 = LOW, 31-60 = MED, 61-100 = HIGH
+Water:  0-15 = CRITICAL, 16-30 = LOW, 31-50 = MID, 51-75 = HIGH, 76-100 = SURPLUS
+Food:   0-15 = CRITICAL, 16-30 = LOW, 31-50 = MID, 51-75 = HIGH, 76-100 = SURPLUS
+Energy: 0-15 = CRITICAL, 16-30 = LOW, 31-50 = MID, 51-75 = HIGH, 76-100 = SURPLUS
+Land:   0-15 = CRITICAL, 16-30 = LOW, 31-50 = MID, 51-75 = HIGH, 76-100 = SURPLUS
 ```
 
 ### Action Space (6 actions)
@@ -91,22 +91,20 @@ Land:  0-30 = LOW, 31-60 = MED, 61-100 = HIGH
 | HARVEST  | Food +12, Water +8, Energy +5, Land -8 | Always available |
 | CONSERVE | All depletion reduced 50%              | Always available |
 | TRADE    | Queued for matching                    | Always available |
-| EXPAND   | Population +10%, Resources -10%        | Population > 200 |
+| EXPAND   | Population +10%, Resources -10%        | Always available |
 | DEFEND   | Resources floor = current level        | Always available |
-| INNOVATE | Energy -10, future efficiency +5%      | Energy > 15      |
+| INNOVATE | Energy -10, future efficiency +5%      | Always available |
 
 ### Reward Function
 
 ```
-R = w1 × ΔPopulation + w2 × ΔHappiness + w3 × ResourceStability + w4 × TradeSuccess
-
-Where:
-  w1 = 0.3 (population growth weight)
-  w2 = 0.3 (happiness weight)
-  w3 = 0.25 (resource stability — penalize any resource < 15)
-  w4 = 0.15 (trade success bonus)
-
-Collapse penalty: -100
+Reward components (discrete conditional bonuses):
+  - Resource stability: -5 per resource below 15
+  - Resource health: +3 if avg > 60, +1 if avg > 40, -5 if avg < 20
+  - Population: +2 if pop > 500, -3 if pop < 200
+  - Happiness: +2 if > 70, -3 if < 30
+  - Trade success: +3 per successful trade this cycle
+  - Collapse penalty: -100
 ```
 
 ### Learning Parameters
@@ -114,10 +112,14 @@ Collapse penalty: -100
 ```
 Learning Rate (α):    0.1  → How fast Q-values update
 Discount Factor (γ):  0.9  → How much future rewards matter
-Exploration Rate (ε): 0.3 → 0.1 (decays over cycles)
-  Cycle 1-30:   ε = 0.3 (explore 30% of the time)
-  Cycle 31-70:  ε = 0.15
-  Cycle 71+:    ε = 0.10
+Exploration Rate (ε): Continuous exponential decay
+  ε(t) = max(0.05, 0.3 × e^(-0.02t))
+  Cycle 1:    ε ≈ 0.30 (explore 30%)
+  Cycle 35:   ε ≈ 0.15
+  Cycle 70:   ε ≈ 0.07
+  Cycle 100+: ε ≈ 0.05 (minimum 5% exploration)
+
+Q-table persisted to localStorage every 10 learning steps.
 ```
 
 ### Q-Update Rule
@@ -140,11 +142,12 @@ Where:
 
 ```
 1. Collect all states that chose TRADE
-2. For each, identify SURPLUS (highest resource > 50) and NEED (lowest resource < 30)
-3. Find complementary pairs (A's surplus = B's need AND B's surplus = A's need)
+2. For each, identify SURPLUS (highest resource > 40) and NEED (lowest resource < 50)
+3. Find complementary pairs (A’s surplus = B’s need OR B’s surplus = A’s need)
 4. Score matches by trust level
-5. Execute top matches first
-6. Unmatched states get no trade this cycle
+5. Allied pairs (+5% exchange bonus for trust ≥ 7 and 5+ trades)
+6. Execute top matches first
+7. Unmatched states get no trade this cycle
 ```
 
 ### Trust Dynamics
@@ -152,9 +155,10 @@ Where:
 ```
 Successful trade: trust += 1 (max 10)
 No trade this cycle: trust -= 0.1 (natural decay)
+Betrayal (partner refused): trust -= 0.5
 Trust reaches 0: relationship removed
 Alliance threshold: trust ≥ 7 AND trades ≥ 5
-Alliance bonus: +5% better exchange rates
+Alliance bonus: +5% better exchange rates (implemented)
 ```
 
 ---
@@ -165,11 +169,12 @@ Alliance bonus: +5% better exchange rates
 
 ```
 Each cycle:
-  P(state event)  = 0.30 (30%)
-  P(global event) = 0.10 (10%)
-  P(no event)     = 0.60 (60%)
+  P(any event) = 0.30 (30%)
+  If event triggers: 70% state-specific, 30% global
+    => Effective: ~21% state event, ~9% global event
 
-Cooldown: Same event cannot repeat within 10 cycles
+Cooldown: State events cannot repeat within 10 cycles
+          Global events cannot repeat within 15 cycles
 Events per state: 8 unique events
 Global events: 8 unique events
 Total pool: 72 events
@@ -177,12 +182,12 @@ Total pool: 72 events
 
 ---
 
-## 6. Simulation Cycle (6 Steps)
+## 6. Simulation Cycle (7 Steps)
 
 ```
 Step 1: CONSUME
-  resource -= population × consumption_rate
-  Small natural regeneration applied
+  resource -= population × consumption_rate × innovation_bonus
+  Natural regeneration scaled by land factor (0.5x at land=0, 1.5x at land=100)
 
 Step 2: EVENT
   Random event triggered based on probability
@@ -194,6 +199,8 @@ Step 3: AGENTS DECIDE
 
 Step 4: TRADE RESOLUTION
   Match traders → execute exchanges → update trust
+  Apply betrayal penalties for refused trades
+  Decay trust for inactive pairs
 
 Step 5: WORLD UPDATE
   Happiness = f(resources above survival threshold)
@@ -201,8 +208,12 @@ Step 5: WORLD UPDATE
   GDP = f(trade_activity, surplus, population)
 
 Step 6: COLLAPSE CHECK
-  If any resource = 0 AND population < 100 → COLLAPSE
+  If (≥2 resources = 0 AND pop < 150) OR (≥1 resource = 0 AND pop < 80) → COLLAPSE
   Collapsed state marked dead, recorded with reason and cycle
+
+Step 7: AGENTS LEARN
+  Q-update for each alive agent using reward signal
+  Q-tables persisted to localStorage periodically
 ```
 
 ---
@@ -281,16 +292,16 @@ src/
 
 ---
 
-## 10. Real-World Parallels Mapping
+## 10. Emergent Strategy Patterns
 
-| Strategy Pattern          | Real Country | Discovered By Agent      |
-| ------------------------- | ------------ | ------------------------ |
-| Trade surplus for needs   | Singapore    | Punjab, Kerala           |
-| Innovate under scarcity   | Israel       | Rajasthan                |
-| Conserve for future       | Norway       | Multiple states          |
-| Build trade alliances     | Japan        | Punjab-Jharkhand         |
-| Over-harvest → collapse   | Venezuela    | Tamil Nadu (if isolated) |
-| Isolationism → stagnation | North Korea  | States that refuse trade |
+| Strategy Pattern          | Discovered By Agent      | Analysis Insight |
+| ------------------------- | ------------------------ | ---------------- |
+| Trade surplus for needs   | Punjab, Kerala           | Converges to TRADE when resources diverge |
+| Innovate under scarcity   | Rajasthan                | Energy investment pays off long-term |
+| Conserve for future       | Multiple states          | Low-risk, plateaus in mid-game |
+| Build trade alliances     | Punjab-Jharkhand         | Trust > 7 unlocks alliance bonus |
+| Over-harvest → collapse   | Tamil Nadu (if isolated) | Land depletion cascades to food/water |
+| Isolationism → stagnation | States that refuse trade | Betrayal penalties erode trust network |
 
 ---
 

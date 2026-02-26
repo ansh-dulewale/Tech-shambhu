@@ -74,8 +74,11 @@ Each state is governed by an independent AI agent using **Q-Learning**:
 
 - Agents propose trades based on surplus/deficit analysis
 - Trust builds through successful trades (1-10 scale)
+- Trust decays naturally (-0.1/cycle) for inactive partnerships
+- Betrayal penalty (-0.5 trust) when a partner refuses to trade
 - Alliances form organically when trust > 7 and trades > 5
-- Broken deals reduce trust, making future cooperation harder
+- Allied pairs get +5% exchange rate bonus
+- Trust can reach 0 and relationships are removed entirely
 
 ---
 
@@ -90,26 +93,29 @@ Each state is governed by an independent AI agent using **Q-Learning**:
 
 ### What-If Scenarios 🔮
 
-- "What if Rajasthan had water?"
+- "What if Rajasthan had no water?"
 - "What if interstate trade was banned?"
 - "What if climate disasters doubled?"
-- Custom parameter modification
+- "What if everyone cooperated?"
+- "What if Kerala lost its coastline?"
 
 ### Comparison Mode ⚔️
 
-- Split-screen: AI agents vs Random agents
-- Same conditions, different decision-making
-- Proves AI learning produces measurably better outcomes
+- AI agents vs Random agents (100 headless cycles each)
+- Same initial conditions, different decision-making
+- Side-by-side metric cards proving AI learning produces measurably better outcomes
 
 ---
 
 ## 📊 Analysis & Insights
 
-- **Sustainability Rankings**: Score each state by survival length, happiness, GDP growth
-- **Collapse Analysis**: Root cause breakdown when states fail
-- **Strategy Breakdown**: What each AI learned (action distribution)
-- **Real-World Parallels**: Maps strategies to real countries (Singapore, Israel, Norway, etc.)
-- **Auto-Generated Story**: Narrative of the simulation in 4 chapters
+- **Sustainability Rankings**: Composite score from survival length, happiness, GDP, trade activity
+- **Collapse Prediction**: Trend-based forecasting of which states may collapse (cycles remaining)
+- **Collapse Root-Cause Analysis**: Decline chain showing which resources fell fastest before failure
+- **Strategy Convergence**: Whether agents settled on a dominant strategy or shifted over time
+- **Resource Vulnerabilities**: Identifies imbalanced states (high surplus + critical weakness)
+- **Trade Network Topology**: Hub identification, top corridors, isolated states
+- **Auto-Generated Story**: Data-driven narrative of the simulation in 4 chapters
 
 ---
 

@@ -100,10 +100,11 @@ class World {
       s.resources.energy -= (3 + popFactor * 2) * innovBonus;
       s.resources.land -= (0.5 + popFactor * 0.3) * innovBonus;
 
-      // Natural regeneration
-      s.resources.water += 2;
-      s.resources.food += 1.5;
-      s.resources.energy += 1;
+      // Natural regeneration — scales with land (more land = better regen)
+      const landFactor = 0.5 + (s.resources.land / 100) * 1.0; // 0.5x at land=0, 1.5x at land=100
+      s.resources.water += 2 * landFactor;
+      s.resources.food += 1.5 * landFactor;
+      s.resources.energy += 1 * landFactor;
       s.resources.land += 0.3;
 
       // Clamp
@@ -142,6 +143,8 @@ class World {
       // Decay trust for pairs that didn't trade this cycle
       const tradedPairKeys = trades.map(t => [t.from, t.to].sort().join('_'));
       this.tradeSystem.decayTrust(tradedPairKeys);
+      // Betrayal penalty: trust drops when a partner refuses to trade
+      this.tradeSystem.applyBetrayalPenalty(tradingIds, this.states);
     }
 
     // STEP 5: UPDATE WORLD — happiness, population, GDP

@@ -203,6 +203,7 @@ function App() {
                 states={states}
                 trades={trades}
                 alliances={alliances}
+                activeEvent={events.length > 0 ? events[events.length - 1] : null}
                 onStateClick={setSelectedState}
               />
             </div>

@@ -16,19 +16,19 @@ const EVENT_TYPES = [
 ];
 
 const RESOURCE_ICONS = {
-  water: "",
-  food: "",
-  energy: "",
-  land: "",
+  water: "W",
+  food: "F",
+  energy: "E",
+  land: "L",
 };
 
 const ACTION_ICONS = {
-  HARVEST: "",
-  CONSERVE: "",
-  TRADE: "",
-  EXPAND: "",
-  DEFEND: "",
-  INNOVATE: "",
+  HARVEST: "HRV",
+  CONSERVE: "CON",
+  TRADE: "TRD",
+  EXPAND: "EXP",
+  DEFEND: "DEF",
+  INNOVATE: "INN",
 };
 
 function GodMode({
