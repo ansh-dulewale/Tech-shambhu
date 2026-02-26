@@ -31,6 +31,22 @@ class TradeSystem {
     }
   }
 
+  /**
+   * Decay trust for pairs that didn't trade this cycle.
+   * Relationships naturally weaken without active cooperation.
+   * @param {string[]} tradedPairKeys - array of sorted 'id1_id2' keys that traded this cycle
+   */
+  decayTrust(tradedPairKeys = []) {
+    const tradedSet = new Set(tradedPairKeys);
+    for (const key of Object.keys(this.trustMatrix)) {
+      if (!tradedSet.has(key) && this.trustMatrix[key] > 0) {
+        this.trustMatrix[key] = Math.max(0, this.trustMatrix[key] - 0.1);
+        // Clean up zero-trust entries
+        if (this.trustMatrix[key] <= 0) delete this.trustMatrix[key];
+      }
+    }
+  }
+
   matchAndExecute(tradingStateIds, allStates) {
     const trades = [];
     const matched = new Set();
@@ -75,7 +91,12 @@ class TradeSystem {
 
         if (complementary) {
           const trust = this.getTrust(a.id, b.id);
-          const amount = trust <= 3 ? 10 : trust <= 6 ? 15 : 20;
+          const baseAmount = trust <= 3 ? 10 : trust <= 6 ? 15 : 20;
+          // Alliance bonus: +5% exchange rate for allied pairs
+          const isAllied = trust >= 7 && this.tradeHistory.filter(t =>
+            (t.from === a.id && t.to === b.id) || (t.from === b.id && t.to === a.id)
+          ).length >= 5;
+          const amount = isAllied ? Math.round(baseAmount * 1.05) : baseAmount;
 
           const gaveRes = a.surplus;
           const gotRes = b.surplus || b.need === a.surplus ? Object.keys(allStates[b.id].resources)
@@ -113,6 +134,28 @@ class TradeSystem {
       this.tradeHistory = this.tradeHistory.slice(-200);
     }
     return trades;
+  }
+
+  /**
+   * Betrayal: penalize trust when a state COULD trade but chose not to.
+   * States that chose DEFEND/HARVEST while a partner wanted to trade lose trust.
+   * @param {string[]} tradingIds - states that chose TRADE this cycle
+   * @param {object} allStates - all states object
+   */
+  applyBetrayalPenalty(tradingIds, allStates) {
+    const tradingSet = new Set(tradingIds);
+    for (const key of Object.keys(this.trustMatrix)) {
+      const [s1, s2] = key.split('_');
+      // If one partner wanted to trade but the other refused
+      const s1Trading = tradingSet.has(s1);
+      const s2Trading = tradingSet.has(s2);
+      if ((s1Trading && !s2Trading && allStates[s2]?.alive) ||
+          (s2Trading && !s1Trading && allStates[s1]?.alive)) {
+        // The non-trading partner "betrayed" — trust drops
+        this.trustMatrix[key] = Math.max(0, this.trustMatrix[key] - 0.5);
+        if (this.trustMatrix[key] <= 0) delete this.trustMatrix[key];
+      }
+    }
   }
 
   getAlliances() {

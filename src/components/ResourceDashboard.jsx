@@ -1,10 +1,10 @@
 import React from 'react';
 
 const RESOURCE_CONFIG = {
-  water: { color: '#00d4ff', label: 'Water' },
-  food: { color: '#00e676', label: 'Food' },
-  energy: { color: '#ffab00', label: 'Energy' },
-  land: { color: '#8d6e63', label: 'Land' },
+  water: { color: '#67e8f9', label: 'Water' },
+  food: { color: '#6ee7b7', label: 'Food' },
+  energy: { color: '#fcd34d', label: 'Energy' },
+  land: { color: '#c4b5fd', label: 'Land' },
 };
 
 function ResourceBar({ value, color, label }) {
@@ -12,16 +12,16 @@ function ResourceBar({ value, color, label }) {
   const isCritical = value <= 10;
 
   return (
-    <div className="flex items-center gap-2 mb-1">
-      <span className="text-xs text-gray-500 w-12 text-right uppercase tracking-wider">{label}</span>
-      <div className="flex-1 h-2.5 bg-gray-800/80 rounded-full overflow-hidden">
+    <div className="flex items-center gap-2.5 mb-1.5">
+      <span className="text-[10px] text-gray-500 w-12 text-right uppercase tracking-wider font-medium">{label}</span>
+      <div className="flex-1 h-[7px] bg-gray-800/80 rounded-full overflow-hidden relative">
         {value > 0 ? (
           <div
-            className={`h-full rounded-full transition-all duration-700 ease-out ${isCritical ? 'animate-pulse' : ''}`}
+            className={`h-full rounded-full transition-all duration-700 ease-out animate-bar-fill ${isCritical ? 'animate-pulse' : ''}`}
             style={{
               width: `${Math.max(value, 4)}%`,
-              backgroundColor: isLow ? '#ff1744' : color,
-              boxShadow: isLow ? '0 0 8px rgba(255,23,68,0.4)' : 'none'
+              background: isLow ? 'linear-gradient(90deg, #ff1744, #ff5252)' : `linear-gradient(90deg, ${color}dd, ${color})`,
+              boxShadow: isLow ? '0 0 10px rgba(255,23,68,0.5)' : `0 0 8px ${color}30`
             }}
           />
         ) : (
@@ -31,7 +31,7 @@ function ResourceBar({ value, color, label }) {
         )}
       </div>
       <span
-        className="text-xs w-7 text-right font-semibold tabular-nums"
+        className="text-[11px] w-7 text-right font-bold tabular-nums font-mono"
         style={{ color: isLow ? '#ff1744' : color }}
       >
         {Math.round(value)}
@@ -46,21 +46,27 @@ function StateCard({ state }) {
     avg > 60 ? 'border-emerald-500/20' :
       avg > 40 ? 'border-amber-500/20' :
         avg > 20 ? 'border-orange-500/20' : 'border-red-500/20';
+  const glowColor = !state.alive ? '' :
+    avg > 60 ? 'hover:shadow-emerald-500/5' :
+      avg > 40 ? 'hover:shadow-amber-500/5' :
+        avg > 20 ? 'hover:shadow-orange-500/5' : 'hover:shadow-red-500/5';
 
   return (
-    <div className={`p-3 rounded-xl bg-white/[0.02] border ${borderColor} transition-all duration-300 hover:bg-white/[0.05] ${!state.alive ? 'opacity-30' : ''}`}>
-      <div className="flex items-center justify-between mb-2">
+    <div className={`card-entrance p-3.5 rounded-2xl bg-white/[0.02] border ${borderColor} transition-all duration-300 hover:bg-white/[0.05] hover:shadow-lg ${glowColor} hover:-translate-y-px ${!state.alive ? 'opacity-30 grayscale' : ''}`}>
+      <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-white">{state.name}</span>
+          <div className={`w-2 h-2 rounded-full ${avg > 60 ? 'bg-emerald-400' : avg > 40 ? 'bg-amber-400' : avg > 20 ? 'bg-orange-400' : 'bg-red-400'} ${state.alive ? 'shadow-sm' : ''}`}
+               style={state.alive ? { boxShadow: `0 0 6px ${avg > 60 ? 'rgba(52,211,153,0.4)' : avg > 40 ? 'rgba(251,191,36,0.4)' : avg > 20 ? 'rgba(251,146,60,0.4)' : 'rgba(248,113,113,0.4)'}` } : {}} />
+          <span className="text-sm font-bold text-white tracking-tight">{state.name}</span>
           {state.action && (
-            <span className="text-[11px] px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300 font-medium uppercase tracking-wider">
+            <span className="text-[10px] px-2 py-0.5 rounded-lg bg-gradient-to-r from-violet-500/15 to-fuchsia-500/10 text-violet-300 font-semibold uppercase tracking-wider border border-violet-500/10">
               {state.action}
             </span>
           )}
         </div>
-        <div className="flex items-center gap-3 text-xs text-gray-500">
-          <span>Pop {state.population}</span>
-          <span>{state.happiness}%</span>
+        <div className="flex items-center gap-2.5 text-[11px] text-gray-500">
+          <span className="flex items-center gap-1">👥 {state.population}</span>
+          <span className="flex items-center gap-1">😊 {state.happiness}%</span>
         </div>
       </div>
       {Object.entries(RESOURCE_CONFIG).map(([key, config]) => (
@@ -72,7 +78,9 @@ function StateCard({ state }) {
         />
       ))}
       {!state.alive && (
-        <div className="text-center text-xs text-red-400/80 mt-1 font-semibold uppercase tracking-wider">Collapsed</div>
+        <div className="text-center text-xs text-red-400/80 mt-2 font-bold uppercase tracking-widest flex items-center justify-center gap-1">
+          <span className="w-4 h-px bg-red-500/30" /> Collapsed <span className="w-4 h-px bg-red-500/30" />
+        </div>
       )}
     </div>
   );
@@ -83,10 +91,16 @@ function ResourceDashboard({ states = [] }) {
   const collapsedStates = states.filter(s => !s.alive);
 
   return (
-    <div className="glass-card p-4 overflow-y-auto max-h-[480px]">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-white uppercase tracking-wider">Resource Overview</h2>
-        <span className="text-xs text-gray-500 tabular-nums">{aliveStates.length}/8 active</span>
+    <div className="glass-card p-5 overflow-y-auto max-h-[520px]">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 font-display">
+          <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-fuchsia-400 to-violet-400 inline-block" />
+          Resource Overview
+        </h2>
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.03]">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-[11px] text-gray-400 font-mono tabular-nums font-medium">{aliveStates.length}/8 active</span>
+        </div>
       </div>
       <div className="space-y-2">
         {aliveStates
