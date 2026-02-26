@@ -1,0 +1,157 @@
+# WorldSim — Adaptive Resource Scarcity & Agent Strategy Simulator
+
+## 🌍 Overview
+
+WorldSim is a browser-based simulation platform where AI agents govern 8 real Indian states, managing finite resources — water, food, energy, and land. Using reinforcement learning (Q-Learning), autonomous agents learn survival strategies through trial and error, forming trade alliances, adapting to real-world news events, and competing for scarce resources.
+
+The platform offers both a **Dashboard Mode** (real-time resource intelligence view) and a **Simulation Mode** (AI-driven world evolution), making it both an analytical tool and an interactive playground.
+
+---
+
+## 🎯 Problem Statement
+
+Design a simulation engine with:
+
+- Regions with distinct, finite resources (water, food, energy, land)
+- Autonomous AI agents that learn strategies via reinforcement learning
+- Evolving world with resource depletion, climatic events, and trade dynamics
+- Analysis of emergent strategies — what works, what fails, and why
+- Rich visualization of the evolving world state
+
+---
+
+## 🇮🇳 Our Approach: Real India, Real Data
+
+Instead of fictional regions, we simulate **8 real Indian states** with **real resource profiles** sourced from government data (data.gov.in, India WRIS, CEA reports). Events are driven by **72 real news headlines** from authentic sources like The Hindu, NDTV, Economic Times, and Times of India.
+
+### The 8 States
+
+| State         | 💧 Water | 🌾 Food | ⚡ Energy | 🏔️ Land | Archetype             |
+| ------------- | -------- | ------- | --------- | ------- | --------------------- |
+| Punjab        | 55       | 95      | 30        | 60      | Food Exporter         |
+| Rajasthan     | 15       | 35      | 80        | 90      | Energy from Desert    |
+| Gujarat       | 40       | 55      | 75        | 65      | Industrial Powerhouse |
+| Kerala        | 85       | 60      | 25        | 20      | Water Rich, Land Poor |
+| Jharkhand     | 45       | 30      | 85        | 50      | Mining Capital        |
+| Maharashtra   | 50       | 55      | 60        | 70      | Balanced but Uneven   |
+| Tamil Nadu    | 35       | 65      | 55        | 45      | Water Dependent       |
+| Uttar Pradesh | 65       | 85      | 35        | 80      | Population Giant      |
+
+---
+
+## 🧠 AI Agent — Q-Learning
+
+Each state is governed by an independent AI agent using **Q-Learning**:
+
+1. **Observe**: Agent reads its current resource levels, population, happiness
+2. **Decide**: Picks from 6 actions — HARVEST, CONSERVE, TRADE, EXPAND, DEFEND, INNOVATE
+3. **Act**: Action effects apply to the state's resources
+4. **Learn**: Gets a reward (positive for growth, negative for decline), updates Q-table
+5. **Adapt**: Over 100+ cycles, agents discover optimal strategies unique to their state
+
+### Emergent Strategies Observed
+
+- **Punjab** → Learns to TRADE food for energy/water (like Singapore)
+- **Rajasthan** → Learns to INNOVATE under water scarcity (like Israel)
+- **Kerala** → Becomes a water exporter (like Canada)
+- **Tamil Nadu** → Struggles without trade partners (vulnerability exposed)
+
+---
+
+## 🌪️ Event System — Real News-Driven
+
+72 real news headlines drive the simulation:
+
+- 8 events per state (state-specific impacts)
+- 8 global events (affect all states)
+- Events are sourced from The Hindu, NDTV, Economic Times, IMD, etc.
+
+**Example**: "Punjab groundwater drops to critical" → The Hindu, 2024 → Water -25 for Punjab
+
+---
+
+## 🤝 Trade & Alliance System
+
+- Agents propose trades based on surplus/deficit analysis
+- Trust builds through successful trades (1-10 scale)
+- Alliances form organically when trust > 7 and trades > 5
+- Broken deals reduce trust, making future cooperation harder
+
+---
+
+## 🎮 Interactive Features
+
+### God Mode 🌩️
+
+- Trigger events manually (drought, flood, etc.)
+- Block trade between specific states (simulate sanctions)
+- Give resource aid to struggling states
+- Force an agent to take a specific action
+
+### What-If Scenarios 🔮
+
+- "What if Rajasthan had water?"
+- "What if interstate trade was banned?"
+- "What if climate disasters doubled?"
+- Custom parameter modification
+
+### Comparison Mode ⚔️
+
+- Split-screen: AI agents vs Random agents
+- Same conditions, different decision-making
+- Proves AI learning produces measurably better outcomes
+
+---
+
+## 📊 Analysis & Insights
+
+- **Sustainability Rankings**: Score each state by survival length, happiness, GDP growth
+- **Collapse Analysis**: Root cause breakdown when states fail
+- **Strategy Breakdown**: What each AI learned (action distribution)
+- **Real-World Parallels**: Maps strategies to real countries (Singapore, Israel, Norway, etc.)
+- **Auto-Generated Story**: Narrative of the simulation in 4 chapters
+
+---
+
+## 🛠️ Tech Stack
+
+| Component          | Technology                               |
+| ------------------ | ---------------------------------------- |
+| Frontend Framework | React 19 + Vite                          |
+| Styling            | Tailwind CSS v4                          |
+| Charts             | Chart.js + react-chartjs-2               |
+| World Map          | HTML5 Canvas                             |
+| AI Engine          | Q-Learning (JavaScript)                  |
+| Data               | Static JSON with real government sources |
+| Design             | Dark glassmorphism theme                 |
+
+---
+
+## 👥 Team
+
+| Member   | Role          | Responsibilities                                       |
+| -------- | ------------- | ------------------------------------------------------ |
+| Member 1 | Engine Person | AI Agent (Q-Learning), Simulation Engine, Trade System |
+| Member 2 | Visual Person | UI/UX, India Map, Charts, Animations                   |
+| Member 3 | Connector     | Data, Events, Scenarios, Analysis, Integration         |
+
+---
+
+## 🚀 Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+---
+
+## 📜 License
+
+MIT License — Built for hackathon by Team Tech-Shambhu
