@@ -34,6 +34,7 @@ function App() {
   const [speed, setSpeed] = useState(1);
   const [selectedState, setSelectedState] = useState(null);
   const [scenarioResult, setScenarioResult] = useState(null);
+  const [comparisonData, setComparisonData] = useState({ ai: null, random: null });
   const intervalRef = useRef(null);
 
   // Run one cycle
@@ -85,13 +86,12 @@ function App() {
       // Create a fresh world with modifications
       const modifiedData = JSON.parse(JSON.stringify(statesData));
 
-      // Apply scenario changes
+      // Separate global vs per-state changes
+      const globalChanges = scenario.changes.global || {};
+
+      // Apply per-state changes to data
       Object.entries(scenario.changes).forEach(([target, changes]) => {
-        if (target === "global") {
-          // Global changes are handled by the engine
-          return;
-        }
-        // Per-state changes
+        if (target === "global") return;
         const stateData = modifiedData.states.find((s) => s.id === target);
         if (stateData) {
           Object.entries(changes).forEach(([key, value]) => {
@@ -106,12 +106,31 @@ function App() {
 
       // Run 100 cycles of the scenario in the background
       const scenarioWorld = new World(modifiedData);
+
+      // Apply global settings to the scenario engine
+      if (globalChanges.tradeDisabled) scenarioWorld.setTradeDisabled(true);
+      if (globalChanges.eventRate !== undefined) scenarioWorld.setEventRate(globalChanges.eventRate);
+      if (globalChanges.forceTrade) {
+        // Force all agents to pick TRADE every cycle
+        Object.keys(scenarioWorld.agents).forEach((id) => {
+          scenarioWorld.agents[id].forceNextAction('TRADE');
+        });
+      }
+
       let survived = 0;
       let totalHappiness = 0;
       let totalTrades = 0;
       let totalGdp = 0;
 
       for (let i = 0; i < 100; i++) {
+        // Re-force TRADE each cycle if forceTrade is on
+        if (globalChanges.forceTrade) {
+          Object.keys(scenarioWorld.agents).forEach((id) => {
+            if (scenarioWorld.states[id]?.alive) {
+              scenarioWorld.agents[id].forceNextAction('TRADE');
+            }
+          });
+        }
         const r = scenarioWorld.tick();
         totalTrades += (r.trades || []).length;
       }
@@ -135,6 +154,50 @@ function App() {
     },
     []
   );
+
+  // AI vs Random comparison runner
+  const handleRunComparison = useCallback(() => {
+    const runSim = (useAI) => {
+      const simWorld = new World(JSON.parse(JSON.stringify(statesData)));
+      let totalTrades = 0;
+
+      for (let i = 0; i < 100; i++) {
+        if (!useAI) {
+          // Force random actions each cycle
+          const ACTIONS = ['HARVEST', 'CONSERVE', 'TRADE', 'EXPAND', 'DEFEND', 'INNOVATE'];
+          Object.keys(simWorld.agents).forEach((id) => {
+            if (simWorld.states[id]?.alive) {
+              const randomAction = ACTIONS[Math.floor(Math.random() * ACTIONS.length)];
+              simWorld.agents[id].forceNextAction(randomAction);
+            }
+          });
+        }
+        const r = simWorld.tick();
+        totalTrades += (r.trades || []).length;
+      }
+
+      const finalStates = simWorld.getState();
+      let survived = 0, totalHappiness = 0, totalGdp = 0;
+      finalStates.forEach((s) => {
+        if (s.alive !== false) survived++;
+        totalHappiness += s.happiness || 0;
+        totalGdp += s.gdp || 0;
+      });
+      const total = finalStates.length || 8;
+      return {
+        survived,
+        total,
+        avgHappiness: Math.round(totalHappiness / total),
+        totalTrades,
+        totalGdp: Math.round(totalGdp),
+      };
+    };
+
+    setComparisonData({
+      ai: runSim(true),
+      random: runSim(false),
+    });
+  }, []);
 
   return (
     <div className="min-h-screen p-4">
@@ -193,7 +256,11 @@ function App() {
               collapsedStates={world.collapsedStates}
             />
           )}
-          <ComparisonView />
+          <ComparisonView
+            aiResult={comparisonData.ai}
+            randomResult={comparisonData.random}
+            onRunComparison={handleRunComparison}
+          />
         </div>
       </div>
 
