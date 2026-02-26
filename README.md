@@ -33,7 +33,7 @@ src/
 │   ├── EventLog.jsx               — Scrolling news timeline
 │   ├── StateDetail.jsx            — Popup when clicking a state
 │   └── TradeNetwork.jsx           — Trade lines visualization
-├── features/                      👤 ANSH
+├── features/                      
 │   ├── GodMode.jsx                — Manual intervention controls
 │   ├── WhatIfPanel.jsx            — Scenario buttons
 │   ├── ComparisonView.jsx         — AI vs Random split screen
