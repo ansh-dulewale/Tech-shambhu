@@ -127,6 +127,76 @@ function TrendCharts({ history = [] }) {
     };
   }, [history]);
 
+  // Strategy evolution: stacked area chart showing dominant action distribution
+  const strategyData = useMemo(() => {
+    if (history.length < 5) return null;
+    const stateIds = history[0]?.states?.map(s => s.id) || [];
+    const ACTIONS = ['HARVEST', 'CONSERVE', 'TRADE', 'EXPAND', 'DEFEND', 'INNOVATE'];
+    const ACTION_COLORS = {
+      HARVEST: 'rgba(76, 175, 80, 0.7)',
+      CONSERVE: 'rgba(33, 150, 243, 0.7)',
+      TRADE: 'rgba(255, 152, 0, 0.7)',
+      EXPAND: 'rgba(233, 30, 99, 0.7)',
+      DEFEND: 'rgba(121, 85, 72, 0.7)',
+      INNOVATE: 'rgba(156, 39, 176, 0.7)',
+    };
+    // Sample every Nth cycle for performance
+    const step = Math.max(1, Math.floor(history.length / 60));
+    const sampled = history.filter((_, i) => i % step === 0 || i === history.length - 1);
+    const labels = sampled.map(h => h.cycle);
+
+    return {
+      labels,
+      datasets: ACTIONS.map(action => ({
+        label: action.charAt(0) + action.slice(1).toLowerCase(),
+        data: sampled.map(h => {
+          const alive = (h.states || []).filter(s => s.alive !== false);
+          if (alive.length === 0) return 0;
+          // Count how many states have this action as dominant
+          let count = 0;
+          alive.forEach(s => {
+            if (s.strategy) {
+              const top = Object.entries(s.strategy).reduce((a, b) => a[1] > b[1] ? a : b, ['', -1]);
+              if (top[0] === action) count++;
+            }
+          });
+          return Math.round((count / alive.length) * 100);
+        }),
+        borderColor: ACTION_COLORS[action],
+        backgroundColor: ACTION_COLORS[action].replace('0.7', '0.35'),
+        fill: true,
+        borderWidth: 1,
+      })),
+    };
+  }, [history]);
+
+  const stackedOptions = useMemo(() => ({
+    ...chartOptions,
+    plugins: {
+      ...chartOptions.plugins,
+      tooltip: {
+        ...chartOptions.plugins.tooltip,
+        mode: 'index',
+        callbacks: {
+          label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y}%`,
+        },
+      },
+    },
+    scales: {
+      ...chartOptions.scales,
+      y: {
+        ...chartOptions.scales.y,
+        stacked: true,
+        max: 100,
+        ticks: { ...chartOptions.scales.y.ticks, callback: v => v + '%' },
+      },
+      x: {
+        ...chartOptions.scales.x,
+        stacked: true,
+      },
+    },
+  }), []);
+
   if (history.length < 2) {
     return (
       <div>
@@ -165,6 +235,16 @@ function TrendCharts({ history = [] }) {
             {resourceData && <Line data={resourceData} options={{ ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, max: 100 } } }} />}
           </div>
         </div>
+        {strategyData && (
+          <div>
+            <h3 className="text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-purple-400/60" /> Strategy Evolution
+            </h3>
+            <div className="h-44">
+              <Line data={strategyData} options={stackedOptions} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

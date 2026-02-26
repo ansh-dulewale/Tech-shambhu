@@ -186,11 +186,16 @@ class World {
       }
       s.population = Math.max(10, s.population);
 
-      // GDP
-      const tradeBonus = trades.filter(t => t.from === id || t.to === id).length * 20;
-      const surplusBonus = avg > 50 ? 10 : avg < 20 ? -15 : 0;
-      s.gdp += tradeBonus + surplusBonus;
-      s.gdp = Math.max(0, s.gdp);
+      // GDP — realistic production function
+      const laborFactor = Math.sqrt(s.population / 500);           // diminishing returns on labor
+      const resourceFactor = Math.pow(avg / 50, 0.6);             // Cobb-Douglas style
+      const myTradeCount = trades.filter(t => t.from === id || t.to === id).length;
+      const tradeFactor = 1 + 0.15 * Math.sqrt(myTradeCount);     // trade openness multiplier
+      const innovFactor = 1 + (this.innovationBonus[id] || 0);    // tech multiplier
+      const baseProduction = 50;                                   // base GDP per cycle
+      const cyclicGdp = baseProduction * laborFactor * resourceFactor * tradeFactor * innovFactor;
+      // GDP smoothed: 80% carry-over + 20% new production
+      s.gdp = Math.max(0, Math.round(s.gdp * 0.8 + cyclicGdp * 0.2));
 
       // STEP 6: COLLAPSE CHECK
       const zeroResources = Object.values(s.resources).filter(v => v <= 0).length;
@@ -284,35 +289,42 @@ class World {
    */
   _calculateReward(id, trades, collapsed) {
     const s = this.states[id];
-    let reward = 0;
 
-    // Resource stability: penalty for any resource below 15
+    // Collapse is an immediate terminal penalty
+    if (collapsed.includes(id)) return -100;
+
     const resources = Object.values(s.resources);
-    const criticalCount = resources.filter(v => v < 15).length;
-    reward -= criticalCount * 5;
-
-    // Resource health bonus
     const avg = resources.reduce((a, b) => a + b, 0) / resources.length;
-    if (avg > 60) reward += 3;
-    else if (avg > 40) reward += 1;
-    else if (avg < 20) reward -= 5;
 
-    // Population change
-    if (s.population > 500) reward += 2;
-    else if (s.population < 200) reward -= 3;
+    // Smooth continuous resource reward: linear gradient centered at 40
+    const resourceReward = (avg - 40) / 10;  // range: roughly -4 to +6
 
-    // Happiness
-    if (s.happiness > 70) reward += 2;
-    else if (s.happiness < 30) reward -= 3;
+    // Smooth critical penalty: each resource below 15 adds a tanh penalty
+    const criticalPenalty = resources.reduce((sum, v) => {
+      if (v < 15) sum -= 3 * (1 - Math.tanh((v - 5) / 5)); // steep near 0, gentle near 15
+      return sum;
+    }, 0);
 
-    // Trade success
+    // Smooth population reward: S-curve centered at 350
+    const popReward = 3 * Math.tanh((s.population - 350) / 200);
+
+    // Smooth happiness reward: linear centered at 50
+    const happinessReward = (s.happiness - 50) / 25;  // range: -2 to +2
+
+    // Trade success: diminishing returns via sqrt
     const myTrades = trades.filter(t => t.from === id || t.to === id);
-    reward += myTrades.length * 3;
+    const tradeReward = 2 * Math.sqrt(myTrades.length);
 
-    // Collapse penalty
-    if (collapsed.includes(id)) reward -= 100;
+    // Innovation bonus: reward sustained investment
+    const innovReward = (this.innovationBonus[id] || 0) * 2;
 
-    return reward;
+    // Resource balance bonus: penalize extreme imbalance
+    const minRes = Math.min(...resources);
+    const maxRes = Math.max(...resources);
+    const balancePenalty = maxRes > 0 ? -1.5 * (1 - minRes / maxRes) : 0;
+
+    return resourceReward + criticalPenalty + popReward + happinessReward
+         + tradeReward + innovReward + balancePenalty;
   }
 
   /**

@@ -93,11 +93,19 @@ Each state is governed by an independent AI agent using **Q-Learning**:
 
 ### What-If Scenarios 🔮
 
+**5 preset scenarios:**
 - "What if Rajasthan had no water?"
 - "What if interstate trade was banned?"
 - "What if climate disasters doubled?"
 - "What if everyone cooperated?"
-- "What if Kerala lost its coastline?"
+- "What if UP population doubled?"
+
+**Custom Scenario Builder:**
+- Choose any target state from dropdown
+- Adjust Water / Food / Energy / Land via sliders (0-100)
+- Set global event frequency (0-100%)
+- Toggle trade on/off
+- Run with one click and compare results
 
 ### Comparison Mode ⚔️
 
@@ -115,7 +123,7 @@ Each state is governed by an independent AI agent using **Q-Learning**:
 - **Strategy Convergence**: Whether agents settled on a dominant strategy or shifted over time
 - **Resource Vulnerabilities**: Identifies imbalanced states (high surplus + critical weakness)
 - **Trade Network Topology**: Hub identification, top corridors, isolated states
-- **Auto-Generated Story**: Data-driven narrative of the simulation in 4 chapters
+- **Auto-Generated Story**: Data-driven narrative with variable chapter count — sections generated only when relevant events occur (prologue, first contact/isolation, crisis, alliance, strategy evolution, trade dynamics, collapse narratives, peak prosperity, verdict)
 
 ---
 

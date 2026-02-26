@@ -95,16 +95,21 @@ Land:   0-15 = CRITICAL, 16-30 = LOW, 31-50 = MID, 51-75 = HIGH, 76-100 = SURPLU
 | DEFEND   | Resources floor = current level        | Always available |
 | INNOVATE | Energy -10, future efficiency +5%      | Always available |
 
-### Reward Function
+### Reward Function (Smooth & Continuous)
 
 ```
-Reward components (discrete conditional bonuses):
-  - Resource stability: -5 per resource below 15
-  - Resource health: +3 if avg > 60, +1 if avg > 40, -5 if avg < 20
-  - Population: +2 if pop > 500, -3 if pop < 200
-  - Happiness: +2 if > 70, -3 if < 30
-  - Trade success: +3 per successful trade this cycle
-  - Collapse penalty: -100
+Reward components (continuous gradients, no hard thresholds):
+  - Resource gradient:    (avg - 40) / 10     → linear, centered at 40
+  - Critical penalty:     -3 × (1 - tanh((v-5)/5))  per resource <15
+  - Population (S-curve): 3 × tanh((pop - 350) / 200)
+  - Happiness (linear):   (happiness - 50) / 25
+  - Trade (sqrt):         2 × √(trade_count)   → diminishing returns
+  - Innovation bonus:     innovation_level × 2
+  - Balance penalty:      -1.5 × (1 - min/max) → penalize imbalance
+  - Collapse:             -100 (terminal)
+
+This produces a smooth gradient landscape that Q-Learning can
+follow incrementally, instead of discrete jumps at arbitrary thresholds.
 ```
 
 ### Learning Parameters
@@ -205,7 +210,13 @@ Step 4: TRADE RESOLUTION
 Step 5: WORLD UPDATE
   Happiness = f(resources above survival threshold)
   Population = f(happiness, food, water)
-  GDP = f(trade_activity, surplus, population)
+  GDP = production function:
+    labor    = √(population / 500)      → diminishing returns
+    resource = (avg / 50)^0.6           → Cobb-Douglas style
+    trade    = 1 + 0.15 × √(trades)    → openness multiplier
+    innov    = 1 + innovation_bonus     → tech multiplier
+    cycle_gdp = 50 × labor × resource × trade × innov
+    GDP smoothed: 80% carry-over + 20% new production
 
 Step 6: COLLAPSE CHECK
   If (≥2 resources = 0 AND pop < 150) OR (≥1 resource = 0 AND pop < 80) → COLLAPSE
@@ -235,6 +246,7 @@ Step 7: AGENTS LEARN
 - Line chart: population over time (8 lines)
 - Line chart: happiness over time (8 lines)
 - Line chart: avg resources over time (water/food/energy/land)
+- Stacked area chart: strategy evolution (% of states per dominant action)
 - Trade network list with trust bars and alliance labels
 
 ### Design System
