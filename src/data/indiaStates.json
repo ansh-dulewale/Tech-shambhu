@@ -1,0 +1,596 @@
+{
+  "states": [
+    {
+      "id": "punjab",
+      "name": "Punjab",
+      "title": "India's Bread Basket",
+      "resources": { "water": 55, "food": 95, "energy": 30, "land": 60 },
+      "population": 600,
+      "happiness": 70,
+      "gdp": 1000,
+      "position": { "x": 220, "y": 100 },
+      "color": "#4CAF50",
+      "sources": {
+        "water": "India WRIS, Central Ground Water Board 2024",
+        "food": "Ministry of Agriculture 2024",
+        "energy": "Central Electricity Authority 2024",
+        "land": "Census of India, Land Use Statistics 2023"
+      },
+      "news": [
+        {
+          "headline": "Punjab groundwater drops to critical — 80% blocks overexploited",
+          "source": "The Hindu, 2024",
+          "effects": { "water": -25 },
+          "type": "drought"
+        },
+        {
+          "headline": "Bumper wheat harvest — Punjab produces record 18 million tonnes",
+          "source": "Times of India, 2024",
+          "effects": { "food": 30 },
+          "type": "harvest_boom"
+        },
+        {
+          "headline": "Stubble burning chokes air — energy wasted in crop burning",
+          "source": "NDTV, 2023",
+          "effects": { "energy": -15, "happiness": -10 },
+          "type": "pollution"
+        },
+        {
+          "headline": "SYL Canal dispute — Haryana demands Punjab share water",
+          "source": "Indian Express, 2024",
+          "effects": { "water": -15 },
+          "type": "dispute"
+        },
+        {
+          "headline": "Solar pump scheme launched — 50,000 farmers get free solar pumps",
+          "source": "Economic Times, 2024",
+          "effects": { "energy": 20 },
+          "type": "tech_breakthrough"
+        },
+        {
+          "headline": "Farm loan waiver — state debt rises but farmers happy",
+          "source": "Hindustan Times, 2024",
+          "effects": { "gdp": -15, "happiness": 20 },
+          "type": "policy"
+        },
+        {
+          "headline": "Drug crisis worsens — youth productivity falls",
+          "source": "India Today, 2023",
+          "effects": { "population": -10, "happiness": -15 },
+          "type": "pandemic"
+        },
+        {
+          "headline": "Drip irrigation adoption rises 40% — water usage drops",
+          "source": "The Tribune, 2024",
+          "effects": { "water": 15 },
+          "type": "innovation"
+        }
+      ]
+    },
+    {
+      "id": "rajasthan",
+      "name": "Rajasthan",
+      "title": "Desert Powerhouse",
+      "resources": { "water": 15, "food": 35, "energy": 80, "land": 90 },
+      "population": 500,
+      "happiness": 60,
+      "gdp": 800,
+      "position": { "x": 180, "y": 200 },
+      "color": "#FF9800",
+      "sources": {
+        "water": "India WRIS, Rajasthan Water Authority 2024",
+        "food": "Ministry of Agriculture 2024",
+        "energy": "CEA Report 2024, MNRE",
+        "land": "Census of India 2023"
+      },
+      "news": [
+        {
+          "headline": "Bhadla Solar Park becomes world's largest — 2.7 GW capacity",
+          "source": "Economic Times, 2024",
+          "effects": { "energy": 35 },
+          "type": "tech_breakthrough"
+        },
+        {
+          "headline": "Severe heatwave — temperatures cross 50°C in Barmer",
+          "source": "NDTV, 2024",
+          "effects": { "water": -20, "happiness": -15 },
+          "type": "drought"
+        },
+        {
+          "headline": "Indira Gandhi Canal expansion brings water to 3 new districts",
+          "source": "The Hindu, 2024",
+          "effects": { "water": 25 },
+          "type": "infrastructure"
+        },
+        {
+          "headline": "Sand mining crisis destroys riverbed — water table drops",
+          "source": "Times of India, 2023",
+          "effects": { "water": -15, "land": -10 },
+          "type": "environmental"
+        },
+        {
+          "headline": "Rajasthan becomes top tourist state — heritage sites boom",
+          "source": "India Today, 2024",
+          "effects": { "gdp": 25 },
+          "type": "economic"
+        },
+        {
+          "headline": "Wind energy farms installed in Jaisalmer — 5 GW capacity",
+          "source": "Mint, 2024",
+          "effects": { "energy": 20 },
+          "type": "tech_breakthrough"
+        },
+        {
+          "headline": "Drought declared in 12 districts — crops fail",
+          "source": "Indian Express, 2024",
+          "effects": { "food": -25, "water": -15 },
+          "type": "drought"
+        },
+        {
+          "headline": "Lithium deposits discovered in Degana — mining begins",
+          "source": "Economic Times, 2024",
+          "effects": { "energy": 15, "gdp": 20 },
+          "type": "discovery"
+        }
+      ]
+    },
+    {
+      "id": "gujarat",
+      "name": "Gujarat",
+      "title": "Industrial Engine",
+      "resources": { "water": 40, "food": 55, "energy": 75, "land": 65 },
+      "population": 550,
+      "happiness": 68,
+      "gdp": 1200,
+      "position": { "x": 150, "y": 300 },
+      "color": "#2196F3",
+      "sources": {
+        "water": "India WRIS, Narmada Control Authority 2024",
+        "food": "Ministry of Agriculture 2024",
+        "energy": "CEA 2024",
+        "land": "Census of India 2023"
+      },
+      "news": [
+        {
+          "headline": "Narmada Dam water level at record low — water rationing begins",
+          "source": "NDTV, 2024",
+          "effects": { "water": -20 },
+          "type": "drought"
+        },
+        {
+          "headline": "Gujarat becomes India's largest solar manufacturer",
+          "source": "Economic Times, 2024",
+          "effects": { "energy": 25, "gdp": 15 },
+          "type": "tech_breakthrough"
+        },
+        {
+          "headline": "Amul reports record milk production — dairy exports surge",
+          "source": "Times of India, 2024",
+          "effects": { "food": 20, "gdp": 10 },
+          "type": "harvest_boom"
+        },
+        {
+          "headline": "Cyclone Biparjoy damages coastal farms — losses of ₹10,000 Cr",
+          "source": "Indian Express, 2023",
+          "effects": { "food": -20, "land": -15 },
+          "type": "flood"
+        },
+        {
+          "headline": "GIFT City attracts ₹50,000 Cr investment",
+          "source": "Mint, 2024",
+          "effects": { "gdp": 30 },
+          "type": "economic"
+        },
+        {
+          "headline": "Groundwater contamination — fluoride found in 5 districts",
+          "source": "The Hindu, 2024",
+          "effects": { "water": -15, "happiness": -10 },
+          "type": "pollution"
+        },
+        {
+          "headline": "World's biggest hybrid renewable park in Kutch — 30 GW planned",
+          "source": "Economic Times, 2024",
+          "effects": { "energy": 30 },
+          "type": "tech_breakthrough"
+        },
+        {
+          "headline": "Cotton crop failure — pest infestation destroys 40% harvest",
+          "source": "NDTV, 2024",
+          "effects": { "food": -25 },
+          "type": "crop_failure"
+        }
+      ]
+    },
+    {
+      "id": "kerala",
+      "name": "Kerala",
+      "title": "God's Own Country",
+      "resources": { "water": 85, "food": 60, "energy": 25, "land": 20 },
+      "population": 450,
+      "happiness": 75,
+      "gdp": 900,
+      "position": { "x": 200, "y": 480 },
+      "color": "#00BCD4",
+      "sources": {
+        "water": "India WRIS, Kerala Water Authority 2024",
+        "food": "Ministry of Agriculture 2024",
+        "energy": "CEA 2024",
+        "land": "Census of India 2023"
+      },
+      "news": [
+        {
+          "headline": "Kerala floods 2024 — 100+ dead, 50,000 displaced",
+          "source": "NDTV, 2024",
+          "effects": { "food": -25, "land": -20, "happiness": -20 },
+          "type": "flood"
+        },
+        {
+          "headline": "Wayanad landslide buries 3 villages — massive destruction",
+          "source": "The Hindu, 2024",
+          "effects": { "land": -25, "population": -15 },
+          "type": "earthquake"
+        },
+        {
+          "headline": "Kerala spice exports cross $3 billion — cardamom prices surge",
+          "source": "Economic Times, 2024",
+          "effects": { "food": 15, "gdp": 20 },
+          "type": "economic"
+        },
+        {
+          "headline": "Rubber price crash — farmers in crisis",
+          "source": "Indian Express, 2024",
+          "effects": { "gdp": -15, "happiness": -15 },
+          "type": "economic"
+        },
+        {
+          "headline": "Kerala launches solar rooftop scheme — 10 lakh homes",
+          "source": "Times of India, 2024",
+          "effects": { "energy": 20 },
+          "type": "tech_breakthrough"
+        },
+        {
+          "headline": "Monsoon surplus — all 44 rivers overflowing",
+          "source": "NDTV, 2024",
+          "effects": { "water": 20 },
+          "type": "harvest_boom"
+        },
+        {
+          "headline": "Tourism revival — 2 Cr tourists visit in 2024",
+          "source": "India Today, 2024",
+          "effects": { "gdp": 25 },
+          "type": "economic"
+        },
+        {
+          "headline": "Coastal erosion — 40% of coastline receding",
+          "source": "The Hindu, 2024",
+          "effects": { "land": -15 },
+          "type": "environmental"
+        }
+      ]
+    },
+    {
+      "id": "jharkhand",
+      "name": "Jharkhand",
+      "title": "India's Mining Capital",
+      "resources": { "water": 45, "food": 30, "energy": 85, "land": 50 },
+      "population": 400,
+      "happiness": 55,
+      "gdp": 700,
+      "position": { "x": 380, "y": 260 },
+      "color": "#795548",
+      "sources": {
+        "water": "India WRIS 2024",
+        "food": "Ministry of Agriculture 2024",
+        "energy": "CEA 2024, Coal Ministry",
+        "land": "Census of India 2023"
+      },
+      "news": [
+        {
+          "headline": "Jharkhand coal production hits record — 200M tonnes",
+          "source": "Economic Times, 2024",
+          "effects": { "energy": 30, "gdp": 20 },
+          "type": "production"
+        },
+        {
+          "headline": "Illegal mining — 500 acres of forest destroyed",
+          "source": "NDTV, 2024",
+          "effects": { "land": -20, "water": -10 },
+          "type": "environmental"
+        },
+        {
+          "headline": "Tribal land rights protest — mining halted for 2 months",
+          "source": "The Hindu, 2024",
+          "effects": { "energy": -20, "happiness": -15 },
+          "type": "conflict"
+        },
+        {
+          "headline": "Iron ore exports surge — Jharkhand earns ₹15,000 Cr",
+          "source": "Mint, 2024",
+          "effects": { "gdp": 25 },
+          "type": "economic"
+        },
+        {
+          "headline": "Deforestation rate highest in India — 1000 sq km lost",
+          "source": "Indian Express, 2024",
+          "effects": { "land": -25, "water": -15 },
+          "type": "environmental"
+        },
+        {
+          "headline": "Jharkhand launches food security mission — rice distribution",
+          "source": "Times of India, 2024",
+          "effects": { "food": 20, "happiness": 10 },
+          "type": "policy"
+        },
+        {
+          "headline": "Drought hits Palamu — 5 lakh affected",
+          "source": "NDTV, 2023",
+          "effects": { "water": -20, "food": -15 },
+          "type": "drought"
+        },
+        {
+          "headline": "Uranium mining begins in Singhbhum — nuclear energy boost",
+          "source": "Economic Times, 2024",
+          "effects": { "energy": 25 },
+          "type": "discovery"
+        }
+      ]
+    },
+    {
+      "id": "maharashtra",
+      "name": "Maharashtra",
+      "title": "India's Economic Capital",
+      "resources": { "water": 50, "food": 55, "energy": 60, "land": 70 },
+      "population": 650,
+      "happiness": 65,
+      "gdp": 1500,
+      "position": { "x": 210, "y": 360 },
+      "color": "#9C27B0",
+      "sources": {
+        "water": "India WRIS, Maharashtra Water Board 2024",
+        "food": "Ministry of Agriculture 2024",
+        "energy": "CEA 2024",
+        "land": "Census of India 2023"
+      },
+      "news": [
+        {
+          "headline": "Marathwada drought — 10,000 tankers deployed for water",
+          "source": "NDTV, 2024",
+          "effects": { "water": -25, "happiness": -20 },
+          "type": "drought"
+        },
+        {
+          "headline": "Mumbai flooding — ₹5,000 Cr damage, trains stopped",
+          "source": "Times of India, 2024",
+          "effects": { "land": -15, "gdp": -20 },
+          "type": "flood"
+        },
+        {
+          "headline": "Onion price crash — farmers dump produce on roads",
+          "source": "Indian Express, 2024",
+          "effects": { "food": 15, "happiness": -15 },
+          "type": "economic"
+        },
+        {
+          "headline": "Sugarcane water crisis — water-guzzling crop depletes reservoirs",
+          "source": "The Hindu, 2024",
+          "effects": { "water": -20 },
+          "type": "environmental"
+        },
+        {
+          "headline": "Pune IT sector boom — ₹2 lakh Cr exports",
+          "source": "Economic Times, 2024",
+          "effects": { "gdp": 30 },
+          "type": "economic"
+        },
+        {
+          "headline": "Wind energy capital — Satara produces 5 GW",
+          "source": "Mint, 2024",
+          "effects": { "energy": 20 },
+          "type": "tech_breakthrough"
+        },
+        {
+          "headline": "Farmer suicides rise in Vidarbha — 1,200 in one year",
+          "source": "India Today, 2024",
+          "effects": { "happiness": -25, "population": -10 },
+          "type": "crisis"
+        },
+        {
+          "headline": "Aarey forest saved — 800 acres declared protected",
+          "source": "NDTV, 2024",
+          "effects": { "land": 10, "happiness": 10 },
+          "type": "conservation"
+        }
+      ]
+    },
+    {
+      "id": "tamilnadu",
+      "name": "Tamil Nadu",
+      "title": "Dravidian Tiger",
+      "resources": { "water": 35, "food": 65, "energy": 55, "land": 45 },
+      "population": 550,
+      "happiness": 65,
+      "gdp": 1100,
+      "position": { "x": 260, "y": 480 },
+      "color": "#E91E63",
+      "sources": {
+        "water": "India WRIS, Tamil Nadu Water Board 2024",
+        "food": "Ministry of Agriculture 2024",
+        "energy": "CEA 2024",
+        "land": "Census of India 2023"
+      },
+      "news": [
+        {
+          "headline": "Cauvery water dispute — Karnataka refuses to release water",
+          "source": "NDTV, 2024",
+          "effects": { "water": -30 },
+          "type": "dispute"
+        },
+        {
+          "headline": "Chennai water crisis — city runs dry, water tanker mafia",
+          "source": "Times of India, 2024",
+          "effects": { "water": -25, "happiness": -20 },
+          "type": "drought"
+        },
+        {
+          "headline": "Cyclone Michaung floods Chennai — ₹8,000 Cr damage",
+          "source": "Indian Express, 2023",
+          "effects": { "land": -15, "gdp": -20 },
+          "type": "flood"
+        },
+        {
+          "headline": "Tamil Nadu wind energy crosses 10 GW — India's #1",
+          "source": "Economic Times, 2024",
+          "effects": { "energy": 25 },
+          "type": "tech_breakthrough"
+        },
+        {
+          "headline": "Kudankulam nuclear plant Unit 3 operational",
+          "source": "The Hindu, 2024",
+          "effects": { "energy": 20 },
+          "type": "tech_breakthrough"
+        },
+        {
+          "headline": "Rice production record — Thanjavur delta thrives",
+          "source": "Times of India, 2024",
+          "effects": { "food": 25 },
+          "type": "harvest_boom"
+        },
+        {
+          "headline": "Auto industry boom — Chennai becomes Detroit of Asia",
+          "source": "Mint, 2024",
+          "effects": { "gdp": 25 },
+          "type": "economic"
+        },
+        {
+          "headline": "Coastal erosion threatens 10 fishing villages",
+          "source": "NDTV, 2024",
+          "effects": { "land": -10, "food": -10 },
+          "type": "environmental"
+        }
+      ]
+    },
+    {
+      "id": "uttarpradesh",
+      "name": "Uttar Pradesh",
+      "title": "India's Giant",
+      "resources": { "water": 65, "food": 85, "energy": 35, "land": 80 },
+      "population": 700,
+      "happiness": 58,
+      "gdp": 950,
+      "position": { "x": 310, "y": 180 },
+      "color": "#FF5722",
+      "sources": {
+        "water": "India WRIS 2024",
+        "food": "Ministry of Agriculture 2024",
+        "energy": "CEA 2024",
+        "land": "Census of India 2023"
+      },
+      "news": [
+        {
+          "headline": "Ganges pollution — 75% of sewage enters river untreated",
+          "source": "NDTV, 2024",
+          "effects": { "water": -20, "happiness": -10 },
+          "type": "pollution"
+        },
+        {
+          "headline": "UP becomes India's largest sugarcane producer — surplus exports",
+          "source": "Economic Times, 2024",
+          "effects": { "food": 25, "gdp": 15 },
+          "type": "harvest_boom"
+        },
+        {
+          "headline": "Bundelkhand drought — 7 districts face famine",
+          "source": "The Hindu, 2024",
+          "effects": { "food": -20, "water": -20 },
+          "type": "drought"
+        },
+        {
+          "headline": "Population pressure — UP resources stretched thin",
+          "source": "India Today, 2024",
+          "effects": {
+            "water": -5,
+            "food": -5,
+            "energy": -5,
+            "land": -5,
+            "happiness": -10
+          },
+          "type": "demographic"
+        },
+        {
+          "headline": "Solar power push — UP plans 22 GW solar capacity",
+          "source": "Mint, 2024",
+          "effects": { "energy": 25 },
+          "type": "tech_breakthrough"
+        },
+        {
+          "headline": "Yamuna expressway industrial corridor — jobs boom",
+          "source": "Economic Times, 2024",
+          "effects": { "gdp": 20, "happiness": 10 },
+          "type": "economic"
+        },
+        {
+          "headline": "Flood havoc in eastern UP — Ganga breaches banks",
+          "source": "NDTV, 2024",
+          "effects": { "food": -15, "land": -20 },
+          "type": "flood"
+        },
+        {
+          "headline": "Farm debt crisis — 60% of UP farmers in debt",
+          "source": "Indian Express, 2024",
+          "effects": { "happiness": -20, "gdp": -10 },
+          "type": "economic"
+        }
+      ]
+    }
+  ],
+  "globalEvents": [
+    {
+      "headline": "Monsoon delayed by 2 weeks — IMD issues warning",
+      "source": "IMD, 2024",
+      "effects": { "water": -10 },
+      "type": "climate"
+    },
+    {
+      "headline": "India heatwave — 15 states above 45°C",
+      "source": "NDTV, 2024",
+      "effects": { "water": -15, "happiness": -10 },
+      "type": "climate"
+    },
+    {
+      "headline": "COVID-like virus detected — WHO issues alert",
+      "source": "WHO/Reuters, 2024",
+      "effects": { "population": -10, "happiness": -20 },
+      "type": "pandemic"
+    },
+    {
+      "headline": "Global oil prices crash — energy imports cheaper",
+      "source": "Bloomberg, 2024",
+      "effects": { "energy": 10 },
+      "type": "economic"
+    },
+    {
+      "headline": "UN Climate Report — India faces 2°C rise by 2040",
+      "source": "IPCC Report, 2024",
+      "effects": { "water": -5 },
+      "type": "climate"
+    },
+    {
+      "headline": "National Water Policy — inter-state sharing mandated",
+      "source": "Govt of India, 2024",
+      "effects": { "water": 5 },
+      "type": "policy"
+    },
+    {
+      "headline": "India reaches 500 GW renewable energy target",
+      "source": "MNRE, 2024",
+      "effects": { "energy": 15 },
+      "type": "tech_breakthrough"
+    },
+    {
+      "headline": "Food inflation crosses 10% — public unrest",
+      "source": "RBI Report, 2024",
+      "effects": { "happiness": -15 },
+      "type": "economic"
+    }
+  ]
+}
