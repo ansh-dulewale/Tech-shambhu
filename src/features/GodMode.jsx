@@ -5,30 +5,30 @@ const ACTIONS = ["HARVEST", "CONSERVE", "TRADE", "EXPAND", "DEFEND", "INNOVATE"]
 const RESOURCES = ["water", "food", "energy", "land"];
 
 const EVENT_TYPES = [
-  { id: "drought", label: "🏜️ Drought", color: "#ff9100" },
-  { id: "flood", label: "🌊 Flood", color: "#00d4ff" },
-  { id: "earthquake", label: "🌋 Earthquake", color: "#ff1744" },
-  { id: "pandemic", label: "🦠 Pandemic", color: "#e040fb" },
-  { id: "tech_breakthrough", label: "💡 Tech Boost", color: "#00e676" },
-  { id: "economic", label: "📈 Economic Boom", color: "#ffab00" },
-  { id: "conflict", label: "⚔️ Conflict", color: "#ff5252" },
-  { id: "policy", label: "📜 Policy Change", color: "#40c4ff" },
+  { id: "drought", label: "Drought", color: "#ff9100" },
+  { id: "flood", label: "Flood", color: "#00d4ff" },
+  { id: "earthquake", label: "Earthquake", color: "#ff1744" },
+  { id: "pandemic", label: "Pandemic", color: "#e040fb" },
+  { id: "tech_breakthrough", label: "Tech Boost", color: "#00e676" },
+  { id: "economic", label: "Economic Boom", color: "#ffab00" },
+  { id: "conflict", label: "Conflict", color: "#ff5252" },
+  { id: "policy", label: "Policy Change", color: "#40c4ff" },
 ];
 
 const RESOURCE_ICONS = {
-  water: "💧",
-  food: "🌾",
-  energy: "⚡",
-  land: "🏔️",
+  water: "",
+  food: "",
+  energy: "",
+  land: "",
 };
 
 const ACTION_ICONS = {
-  HARVEST: "🌾",
-  CONSERVE: "🛡️",
-  TRADE: "🤝",
-  EXPAND: "📈",
-  DEFEND: "🏰",
-  INNOVATE: "💡",
+  HARVEST: "",
+  CONSERVE: "",
+  TRADE: "",
+  EXPAND: "",
+  DEFEND: "",
+  INNOVATE: "",
 };
 
 function GodMode({
@@ -61,7 +61,7 @@ function GodMode({
   return (
     <div className="glass-card-glow p-5">
       <h2 className="text-lg font-bold mb-4 text-yellow-400 flex items-center gap-2.5 font-display">
-        <span className="animate-glow text-xl">🌩️</span> God Mode
+        God Mode
       </h2>
 
       {/* State Selector */}
@@ -94,7 +94,7 @@ function GodMode({
               : "bg-gray-800/40 border border-gray-700/60 text-gray-300 hover:border-orange-400/50 hover:text-orange-300 hover:bg-orange-500/5"
             }`}
         >
-          ⚡ Trigger Event
+          Trigger Event
         </button>
 
         <button
@@ -106,7 +106,7 @@ function GodMode({
               : "bg-gray-800/40 border border-gray-700/60 text-gray-300 hover:border-red-400/50 hover:text-red-300 hover:bg-red-500/5"
             }`}
         >
-          🚫 Block Trade
+          Block Trade
         </button>
 
         <button
@@ -118,7 +118,7 @@ function GodMode({
               : "bg-gray-800/40 border border-gray-700/60 text-gray-300 hover:border-green-400/50 hover:text-green-300 hover:bg-green-500/5"
             }`}
         >
-          🎁 Give Aid
+          Give Aid
         </button>
 
         <button
@@ -130,11 +130,11 @@ function GodMode({
               : "bg-gray-800/40 border border-gray-700/60 text-gray-300 hover:border-purple-400/50 hover:text-purple-300 hover:bg-purple-500/5"
             }`}
         >
-          🎯 Force Action
+          Force Action
         </button>
       </div>
 
-      {/* ⚡ Trigger Event Panel */}
+      {/* Trigger Event Panel */}
       {activePanel === "event" && (
         <div className="bg-gray-900/50 rounded-xl p-4 border border-orange-400/20 space-y-3 animate-scale-in">
           <p className="text-xs text-orange-300 font-semibold">Choose event type:</p>
@@ -159,12 +159,12 @@ function GodMode({
             ))}
           </div>
           {!selectedState && (
-            <p className="text-xs text-red-400 mt-1">⚠ Select a state first</p>
+            <p className="text-xs text-red-400 mt-1">Select a state first</p>
           )}
         </div>
       )}
 
-      {/* 🚫 Block Trade Panel */}
+      {/* Block Trade Panel */}
       {activePanel === "block" && (
         <div className="bg-gray-900/50 rounded-xl p-4 border border-red-400/20 space-y-3 animate-scale-in">
           <p className="text-xs text-red-300 font-semibold">Block trade between:</p>
@@ -211,12 +211,12 @@ function GodMode({
                        hover:from-red-500/25 hover:to-red-500/15 hover:border-red-400 hover:-translate-y-px
                        disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            🚫 Block Trade
+            Block Trade
           </button>
         </div>
       )}
 
-      {/* 🎁 Give Aid Panel */}
+      {/* Give Aid Panel */}
       {activePanel === "aid" && (
         <div className="bg-gray-900/50 rounded-xl p-4 border border-green-400/20 space-y-3 animate-scale-in">
           <p className="text-xs text-green-300 font-semibold">Send aid to {selectedState || "..."}:</p>
@@ -270,15 +270,15 @@ function GodMode({
                        hover:from-green-500/25 hover:to-green-500/15 hover:border-green-400 hover:-translate-y-px
                        disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            🎁 Send +{aidAmount} {RESOURCE_ICONS[aidResource]} {aidResource}
+            Send +{aidAmount} {aidResource}
           </button>
           {!selectedState && (
-            <p className="text-xs text-red-400">⚠ Select a state first</p>
+            <p className="text-xs text-red-400">Select a state first</p>
           )}
         </div>
       )}
 
-      {/* 🎯 Force Action Panel */}
+      {/* Force Action Panel */}
       {activePanel === "force" && (
         <div className="bg-gray-900/50 rounded-xl p-4 border border-purple-400/20 space-y-3 animate-scale-in">
           <p className="text-xs text-purple-300 font-semibold">
@@ -313,10 +313,10 @@ function GodMode({
                        hover:from-purple-500/25 hover:to-purple-500/15 hover:border-purple-400 hover:-translate-y-px
                        disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            🎯 Force {ACTION_ICONS[forceAction]} {forceAction}
+            Force {forceAction}
           </button>
           {!selectedState && (
-            <p className="text-xs text-red-400">⚠ Select a state first</p>
+            <p className="text-xs text-red-400">Select a state first</p>
           )}
         </div>
       )}

@@ -74,7 +74,7 @@ function ComparisonView({ aiResult, randomResult, onRunComparison }) {
         return (
             <div className="glass-card-glow p-5">
                 <h2 className="text-lg font-bold mb-4 text-red-400 flex items-center gap-2.5 font-display">
-                    ⚔️ AI vs Random
+                    AI vs Random
                 </h2>
                 <p className="text-xs text-gray-500 italic text-center pt-2 pb-4">
                     Run 100 cycles each: Q-Learning AI vs Random agents — same world, different brains.
@@ -89,7 +89,7 @@ function ComparisonView({ aiResult, randomResult, onRunComparison }) {
                                hover:shadow-xl hover:shadow-violet-500/10 hover:-translate-y-px
                                active:scale-[0.98]"
                 >
-                    ⚔️ Run Comparison (100 cycles)
+                    Run Comparison (100 cycles)
                 </button>
             </div>
         );
@@ -98,7 +98,7 @@ function ComparisonView({ aiResult, randomResult, onRunComparison }) {
     return (
         <div className="glass-card-glow p-5">
             <h2 className="text-lg font-bold mb-4 text-red-400 flex items-center gap-2.5 font-display">
-                ⚔️ AI vs Random
+                AI vs Random
             </h2>
 
             {/* Header labels */}
@@ -116,22 +116,22 @@ function ComparisonView({ aiResult, randomResult, onRunComparison }) {
             {/* Metric Cards */}
             <div className="grid grid-cols-2 gap-2">
                 <MetricCard
-                    label="🏠 States Survived"
+                    label="States Survived"
                     aiValue={aiResult?.survived}
                     randomValue={randomResult?.survived}
                 />
                 <MetricCard
-                    label="😊 Avg Happiness"
+                    label="Avg Happiness"
                     aiValue={aiResult?.avgHappiness}
                     randomValue={randomResult?.avgHappiness}
                 />
                 <MetricCard
-                    label="🤝 Total Trades"
+                    label="Total Trades"
                     aiValue={aiResult?.totalTrades}
                     randomValue={randomResult?.totalTrades}
                 />
                 <MetricCard
-                    label="💰 Total GDP"
+                    label="Total GDP"
                     aiValue={aiResult?.totalGdp}
                     randomValue={randomResult?.totalGdp}
                 />
@@ -149,9 +149,9 @@ function ComparisonView({ aiResult, randomResult, onRunComparison }) {
                         }`}
                     style={{ textShadow: '0 0 12px currentColor' }}
                 >
-                    {advantage.winner === "AI" && `🏆 AI wins ${advantage.score}/${advantage.total} metrics!`}
-                    {advantage.winner === "Random" && `😱 Random wins ${advantage.score}/${advantage.total} metrics!`}
-                    {advantage.winner === "Tie" && `🤝 It's a tie — ${advantage.score}/${advantage.total} each!`}
+                    {advantage.winner === "AI" && `AI wins ${advantage.score}/${advantage.total} metrics!`}
+                    {advantage.winner === "Random" && `Random wins ${advantage.score}/${advantage.total} metrics!`}
+                    {advantage.winner === "Tie" && `It's a tie — ${advantage.score}/${advantage.total} each!`}
                 </div>
             )}
         </div>

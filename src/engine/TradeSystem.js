@@ -31,6 +31,22 @@ class TradeSystem {
     }
   }
 
+  /**
+   * Decay trust for pairs that didn't trade this cycle.
+   * Relationships naturally weaken without active cooperation.
+   * @param {string[]} tradedPairKeys - array of sorted 'id1_id2' keys that traded this cycle
+   */
+  decayTrust(tradedPairKeys = []) {
+    const tradedSet = new Set(tradedPairKeys);
+    for (const key of Object.keys(this.trustMatrix)) {
+      if (!tradedSet.has(key) && this.trustMatrix[key] > 0) {
+        this.trustMatrix[key] = Math.max(0, this.trustMatrix[key] - 0.1);
+        // Clean up zero-trust entries
+        if (this.trustMatrix[key] <= 0) delete this.trustMatrix[key];
+      }
+    }
+  }
+
   matchAndExecute(tradingStateIds, allStates) {
     const trades = [];
     const matched = new Set();

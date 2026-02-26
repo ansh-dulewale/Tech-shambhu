@@ -61,7 +61,7 @@ function generateStory(history, collapsedStates) {
         }
 
         chapters.push({
-            title: "🌅 Chapter 1: Early Days",
+            title: "Chapter 1: Early Days",
             subtitle: `Cycles 1–${early}`,
             text: text.trim(),
         });
@@ -88,7 +88,7 @@ function generateStory(history, collapsedStates) {
             : "Cooperation remained scarce, and states relied on their own reserves.";
 
         chapters.push({
-            title: "⚡ Chapter 2: First Crisis",
+            title: "Chapter 2: First Crisis",
             subtitle: "Cycles 25–50",
             text: text.trim(),
         });
@@ -117,7 +117,7 @@ function generateStory(history, collapsedStates) {
         }
 
         chapters.push({
-            title: "🤝 Chapter 3: Alliances & Rivalries",
+            title: "Chapter 3: Alliances & Rivalries",
             subtitle: "Cycles 50–75",
             text: text.trim(),
         });
@@ -151,7 +151,7 @@ function generateStory(history, collapsedStates) {
         }
 
         chapters.push({
-            title: "🏁 Chapter 4: The Outcome",
+            title: "Chapter 4: The Outcome",
             subtitle: `Cycles 75–${totalCycles}`,
             text: text.trim(),
         });
@@ -170,7 +170,7 @@ function StoryPanel({ history, collapsedStates }) {
         return (
             <div className="glass-card-glow p-5">
                 <h2 className="text-lg font-bold mb-3 text-amber-400 flex items-center gap-2.5 font-display">
-                    <span className="animate-glow text-xl">📖</span> Story
+                    Story
                 </h2>
                 <p className="text-xs text-gray-500 italic">
                     The story will unfold as the simulation progresses...
@@ -182,7 +182,7 @@ function StoryPanel({ history, collapsedStates }) {
     return (
         <div className="glass-card-glow p-5">
             <h2 className="text-lg font-bold mb-4 text-amber-400 flex items-center gap-2.5 font-display">
-                <span className="animate-glow text-xl">📖</span> Story
+                Story
             </h2>
             <div className="space-y-5">
                 {story.map((chapter, idx) => (

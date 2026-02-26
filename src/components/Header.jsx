@@ -8,34 +8,50 @@ function Logo() {
       <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-amber-500 opacity-30 blur-xl animate-glow" />
       {/* Logo container */}
       <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-600 via-fuchsia-500 to-rose-500 flex items-center justify-center overflow-hidden shadow-xl shadow-violet-500/30">
-        {/* Globe SVG */}
-        <svg width="28" height="28" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Globe circle */}
-          <circle cx="13" cy="13" r="11" stroke="rgba(255,255,255,0.9)" strokeWidth="1.2" fill="none" />
-          {/* Meridian lines */}
-          <ellipse cx="13" cy="13" rx="6" ry="11" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8" fill="none" />
-          <ellipse cx="13" cy="13" rx="3" ry="11" stroke="rgba(255,255,255,0.2)" strokeWidth="0.6" fill="none" />
-          {/* Latitude lines */}
-          <line x1="2" y1="9" x2="24" y2="9" stroke="rgba(255,255,255,0.3)" strokeWidth="0.6" />
-          <line x1="2" y1="17" x2="24" y2="17" stroke="rgba(255,255,255,0.3)" strokeWidth="0.6" />
-          <line x1="4" y1="13" x2="22" y2="13" stroke="rgba(255,255,255,0.25)" strokeWidth="0.6" />
-          {/* Circuit nodes */}
-          <circle cx="8" cy="9" r="1.4" fill="#e879f9" />
-          <circle cx="17" cy="13" r="1.4" fill="#a78bfa" />
-          <circle cx="10" cy="17" r="1.4" fill="#fbbf24" />
-          {/* Circuit lines connecting nodes */}
-          <line x1="8" y1="9" x2="17" y2="13" stroke="#e879f9" strokeWidth="0.7" opacity="0.7" />
-          <line x1="17" y1="13" x2="10" y2="17" stroke="#a78bfa" strokeWidth="0.7" opacity="0.7" />
-          {/* Pulse dot - animated */}
-          <circle cx="13" cy="6" r="1" fill="#fbbf24" opacity="0.8">
-            <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" />
-            <animate attributeName="r" values="0.8;1.8;0.8" dur="2s" repeatCount="indefinite" />
+        {/* Abstract network / prism logo */}
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Outer hexagon outline */}
+          <path
+            d="M14 2 L24.39 8 L24.39 20 L14 26 L3.61 20 L3.61 8 Z"
+            stroke="rgba(255,255,255,0.7)"
+            strokeWidth="1"
+            fill="none"
+          />
+          {/* Inner triangle network */}
+          <path
+            d="M14 6 L22 19 L6 19 Z"
+            stroke="rgba(255,255,255,0.25)"
+            strokeWidth="0.7"
+            fill="rgba(255,255,255,0.03)"
+          />
+          {/* Network lines connecting to center */}
+          <line x1="14" y1="6" x2="14" y2="14" stroke="rgba(255,255,255,0.2)" strokeWidth="0.6" />
+          <line x1="6" y1="19" x2="14" y2="14" stroke="rgba(255,255,255,0.2)" strokeWidth="0.6" />
+          <line x1="22" y1="19" x2="14" y2="14" stroke="rgba(255,255,255,0.2)" strokeWidth="0.6" />
+          {/* Network nodes */}
+          <circle cx="14" cy="6" r="2" fill="#e879f9" />
+          <circle cx="6" cy="19" r="2" fill="#a78bfa" />
+          <circle cx="22" cy="19" r="2" fill="#fbbf24" />
+          {/* Center node - pulsing */}
+          <circle cx="14" cy="14" r="2.5" fill="white" opacity="0.9">
+            <animate attributeName="opacity" values="0.6;1;0.6" dur="2.5s" repeatCount="indefinite" />
+            <animate attributeName="r" values="2;3;2" dur="2.5s" repeatCount="indefinite" />
+          </circle>
+          {/* Data flow dots along edges */}
+          <circle r="1" fill="#e879f9" opacity="0.8">
+            <animateMotion dur="3s" repeatCount="indefinite" path="M14,6 L22,19" />
+          </circle>
+          <circle r="1" fill="#a78bfa" opacity="0.8">
+            <animateMotion dur="3.5s" repeatCount="indefinite" path="M6,19 L14,6" />
+          </circle>
+          <circle r="1" fill="#fbbf24" opacity="0.8">
+            <animateMotion dur="4s" repeatCount="indefinite" path="M22,19 L6,19" />
           </circle>
         </svg>
         {/* Rotating ring overlay */}
         <div className="absolute inset-0 rounded-2xl border border-white/10" style={{
-          animation: 'spin 15s linear infinite',
-          background: 'conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.1) 10%, transparent 20%)'
+          animation: 'spin 20s linear infinite',
+          background: 'conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.08) 10%, transparent 20%)'
         }} />
       </div>
     </div>
@@ -91,14 +107,14 @@ function Header({ cycle, speed, isRunning, onStart, onPause, onReset, onSpeedCha
         {cycle > 0 && (
           <div className="flex items-center rounded-2xl bg-gradient-to-b from-zinc-800/30 to-zinc-800/15 border border-zinc-700/20 overflow-hidden divide-x divide-zinc-700/20 shadow-inner">
             {[
-              { label: 'Alive', value: `${alive}/8`, color: alive >= 6 ? 'text-emerald-400' : alive >= 4 ? 'text-amber-400' : 'text-rose-400', icon: '🏛️' },
-              { label: 'Happy', value: `${avgHappiness}%`, color: avgHappiness >= 50 ? 'text-emerald-400' : avgHappiness >= 30 ? 'text-amber-400' : 'text-rose-400', icon: '😊' },
-              { label: 'Pop', value: totalPop >= 1000 ? `${(totalPop / 1000).toFixed(1)}K` : totalPop, color: 'text-sky-400', icon: '👥' },
-              { label: 'GDP', value: totalGdp >= 1000 ? `${(totalGdp / 1000).toFixed(0)}K` : totalGdp, color: 'text-amber-400', icon: '💰' },
+              { label: 'Alive', value: `${alive}/8`, color: alive >= 6 ? 'text-emerald-400' : alive >= 4 ? 'text-amber-400' : 'text-rose-400' },
+              { label: 'Happy', value: `${avgHappiness}%`, color: avgHappiness >= 50 ? 'text-emerald-400' : avgHappiness >= 30 ? 'text-amber-400' : 'text-rose-400' },
+              { label: 'Pop', value: totalPop >= 1000 ? `${(totalPop / 1000).toFixed(1)}K` : totalPop, color: 'text-sky-400' },
+              { label: 'GDP', value: totalGdp >= 1000 ? `${(totalGdp / 1000).toFixed(0)}K` : totalGdp, color: 'text-amber-400' },
             ].map((stat) => (
               <div key={stat.label} className="text-center px-3 py-1.5 group cursor-default hover:bg-white/[0.02] transition-colors">
                 <span className="text-[8px] text-zinc-600 uppercase tracking-wider block leading-tight group-hover:text-zinc-400 transition-colors">
-                  {stat.icon} {stat.label}
+                  {stat.label}
                 </span>
                 <span className={`text-sm font-bold tabular-nums font-mono ${stat.color} transition-all`}>{stat.value}</span>
               </div>
@@ -140,7 +156,7 @@ function Header({ cycle, speed, isRunning, onStart, onPause, onReset, onSpeedCha
         </button>
 
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-b from-zinc-800/25 to-zinc-800/15 border border-zinc-700/20">
-          <span className="text-[10px] text-violet-400 font-semibold">⚡</span>
+          <span className="text-[10px] text-violet-400 font-semibold">Speed</span>
           <input type="range" min="1" max="10" value={speed} onChange={(e) => onSpeedChange(Number(e.target.value))} className="w-16" />
           <span className="text-xs text-violet-400 font-bold w-6 text-center tabular-nums font-mono">{speed}x</span>
         </div>

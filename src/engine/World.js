@@ -139,6 +139,9 @@ class World {
       const tradingIds = aliveIds.filter(id => this.states[id].action === 'TRADE');
       trades = this.tradeSystem.matchAndExecute(tradingIds, this.states);
       this.tradeSystem.tickBlocks();
+      // Decay trust for pairs that didn't trade this cycle
+      const tradedPairKeys = trades.map(t => [t.from, t.to].sort().join('_'));
+      this.tradeSystem.decayTrust(tradedPairKeys);
     }
 
     // STEP 5: UPDATE WORLD — happiness, population, GDP

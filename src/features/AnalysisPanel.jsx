@@ -2,16 +2,16 @@
 import React, { useMemo } from "react";
 
 const STRATEGY_PARALLELS = {
-    TRADE: { label: "Trade Hub", emoji: "🤝", color: "#00e676", desc: "Commerce-driven growth" },
-    CONSERVE: { label: "Preserver", emoji: "🛡️", color: "#40c4ff", desc: "Stability through conservation" },
-    INNOVATE: { label: "Innovator", emoji: "🔬", color: "#ffab00", desc: "Technology-led development" },
-    HARVEST: { label: "Producer", emoji: "🌾", color: "#ff9100", desc: "Agriculture-heavy strategy" },
-    EXPAND: { label: "Expansionist", emoji: "📈", color: "#e040fb", desc: "Aggressive growth strategy" },
-    DEFEND: { label: "Fortress", emoji: "🏰", color: "#7c4dff", desc: "Defensive stability priority" },
+    TRADE: { label: "Trade Hub", color: "#00e676", desc: "Commerce-driven growth" },
+    CONSERVE: { label: "Preserver", color: "#40c4ff", desc: "Stability through conservation" },
+    INNOVATE: { label: "Innovator", color: "#ffab00", desc: "Technology-led development" },
+    HARVEST: { label: "Producer", color: "#ff9100", desc: "Agriculture-heavy strategy" },
+    EXPAND: { label: "Expansionist", color: "#e040fb", desc: "Aggressive growth strategy" },
+    DEFEND: { label: "Fortress", color: "#7c4dff", desc: "Defensive stability priority" },
 };
 
 const RESOURCE_ICONS = {
-    water: "💧", food: "🌾", energy: "⚡", land: "🏔️",
+    water: "", food: "", energy: "", land: "",
 };
 
 function AnalysisPanel({ states, collapsedStates, history }) {
@@ -60,10 +60,10 @@ function AnalysisPanel({ states, collapsedStates, history }) {
         return entries.reduce((a, b) => (a[1] > b[1] ? a : b));
     };
 
-    const getMedalEmoji = (index) => {
-        if (index === 0) return "🥇";
-        if (index === 1) return "🥈";
-        if (index === 2) return "🥉";
+    const getRankLabel = (index) => {
+        if (index === 0) return "#1";
+        if (index === 1) return "#2";
+        if (index === 2) return "#3";
         return `#${index + 1}`;
     };
 
@@ -77,7 +77,7 @@ function AnalysisPanel({ states, collapsedStates, history }) {
         <div className="glass-card p-5 animate-slide-up">
             <h2 className="text-sm font-bold mb-4 text-white uppercase tracking-wider flex items-center gap-2.5 font-display">
                 <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-green-400 to-emerald-400" />
-                <span className="text-green-400">📋</span> Analysis
+                Analysis
             </h2>
 
             {/* Sustainability Rankings */}
@@ -96,7 +96,7 @@ function AnalysisPanel({ states, collapsedStates, history }) {
                                     : "bg-white/[0.02] border border-white/[0.04] hover:border-green-400/20 hover:bg-white/[0.04] hover:-translate-y-px"
                                 }`}
                         >
-                            <span className="text-sm w-7 text-center">{getMedalEmoji(idx)}</span>
+                            <span className="text-sm w-7 text-center">{getRankLabel(idx)}</span>
                             <span className="flex-1 font-semibold text-gray-200">{state.name}</span>
                             <div className="w-24 h-2 rounded-full bg-white/[0.04] overflow-hidden" title={`Score: ${state.score}`}>
                                 <div
@@ -115,7 +115,7 @@ function AnalysisPanel({ states, collapsedStates, history }) {
                 <div className="mb-5">
                     <h3 className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2.5 flex items-center gap-2">
                         <span className="w-1 h-3 rounded-full bg-gradient-to-b from-red-400/60 to-transparent" />
-                        💀 Collapse Analysis
+                        Collapse Analysis
                     </h3>
                     <div className="space-y-2">
                         {collapseReasons.map((cs) => (
@@ -141,7 +141,7 @@ function AnalysisPanel({ states, collapsedStates, history }) {
             <div>
                 <h3 className="text-[10px] font-bold text-purple-400 uppercase tracking-widest mb-2.5 flex items-center gap-2">
                     <span className="w-1 h-3 rounded-full bg-gradient-to-b from-purple-400/60 to-transparent" />
-                    🧠 AI Strategies
+                    AI Strategies
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
                     {rankings
@@ -159,7 +159,7 @@ function AnalysisPanel({ states, collapsedStates, history }) {
                                     className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-purple-400/20 transition-all hover:-translate-y-px"
                                 >
                                     <div className="flex items-center gap-1.5 mb-1.5">
-                                        <span className="text-sm">{parallel.emoji}</span>
+                                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: parallel.color }} />
                                         <span className="text-[11px] font-bold text-gray-200 truncate">{state.name}</span>
                                     </div>
                                     <div className="flex items-center gap-1.5">

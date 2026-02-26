@@ -196,8 +196,8 @@ function App() {
         {/* ═══ MIDDLE: Map + Right Panel ════════════════════════════ */}
         <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
 
-          {/* ─── Left: Map (large, 5 columns) ────────────────────── */}
-          <div className="col-span-5 flex flex-col gap-3 min-h-0">
+          {/* ─── Left: Map (large, 7 columns) ────────────────────── */}
+          <div className="col-span-7 flex flex-col gap-3 min-h-0">
             <div className="flex-1 min-h-0">
               <IndiaMap
                 states={states}
@@ -208,14 +208,14 @@ function App() {
             </div>
           </div>
 
-          {/* ─── Right: Tabbed Panel (7 columns) ─────────────────── */}
-          <div className="col-span-7 flex flex-col min-h-0">
+          {/* ─── Right: Tabbed Panel (5 columns) ─────────────────── */}
+          <div className="col-span-5 flex flex-col min-h-0">
             {/* Tab bar with glass background */}
             <div className="flex items-center gap-1.5 mb-3 p-1 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-              <TabBtn active={rightTab === 'resources'} label="Resources" icon="📊" onClick={() => setRightTab('resources')} />
-              <TabBtn active={rightTab === 'godmode'} label="God Mode" icon="⚡" onClick={() => setRightTab('godmode')} />
-              <TabBtn active={rightTab === 'scenarios'} label="Scenarios" icon="🔮" onClick={() => setRightTab('scenarios')} />
-              <TabBtn active={rightTab === 'compare'} label="AI Battle" icon="⚔️" onClick={() => setRightTab('compare')} />
+              <TabBtn active={rightTab === 'resources'} label="Resources" onClick={() => setRightTab('resources')} />
+              <TabBtn active={rightTab === 'godmode'} label="God Mode" onClick={() => setRightTab('godmode')} />
+              <TabBtn active={rightTab === 'scenarios'} label="Scenarios" onClick={() => setRightTab('scenarios')} />
+              <TabBtn active={rightTab === 'compare'} label="AI Battle" onClick={() => setRightTab('compare')} />
               <div className="flex-1" />
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/[0.03]">
                 <span className={`w-2 h-2 rounded-full ${states.filter(s => s.alive !== false).length >= 6 ? 'bg-emerald-400' : states.filter(s => s.alive !== false).length >= 4 ? 'bg-amber-400' : 'bg-rose-400'} animate-pulse`} />
@@ -260,7 +260,7 @@ function App() {
                   )}
                   {cycle <= 50 && (
                     <div className="glass-card p-10 text-center animate-scale-in">
-                      <div className="text-3xl mb-3 opacity-50">🔮</div>
+                      <div className="text-3xl mb-3 opacity-50">...</div>
                       <p className="text-zinc-400 text-sm">Run the simulation past <span className="text-gradient font-bold">cycle 50</span> to unlock</p>
                       <p className="text-zinc-500 text-xs mt-1">Analysis & Story panels</p>
                     </div>
@@ -282,11 +282,11 @@ function App() {
         <div className="glass-card-glow flex flex-col" style={{ height: '230px', minHeight: '230px' }}>
           {/* Bottom tab bar */}
           <div className="flex items-center gap-1.5 px-4 pt-3 pb-2 border-b border-white/[0.04]">
-            <TabBtn active={bottomTab === 'events'} label="Event Feed" icon="📡" onClick={() => setBottomTab('events')} />
-            <TabBtn active={bottomTab === 'trends'} label="Trends" icon="📈" onClick={() => setBottomTab('trends')} />
-            <TabBtn active={bottomTab === 'trade'} label="Trade Network" icon="🤝" onClick={() => setBottomTab('trade')} />
+            <TabBtn active={bottomTab === 'events'} label="Event Feed" onClick={() => setBottomTab('events')} />
+            <TabBtn active={bottomTab === 'trends'} label="Trends" onClick={() => setBottomTab('trends')} />
+            <TabBtn active={bottomTab === 'trade'} label="Trade Network" onClick={() => setBottomTab('trade')} />
             {cycle > 50 && (
-              <TabBtn active={bottomTab === 'analysis'} label="Analysis" icon="📋" onClick={() => setBottomTab('analysis')} />
+              <TabBtn active={bottomTab === 'analysis'} label="Analysis" onClick={() => setBottomTab('analysis')} />
             )}
             <div className="flex-1" />
             {bottomTab === 'events' && (

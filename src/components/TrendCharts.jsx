@@ -106,11 +106,32 @@ function TrendCharts({ history = [] }) {
     };
   }, [history]);
 
+  // Resource trend: compute average across all alive states for each resource
+  const resourceData = useMemo(() => {
+    if (history.length === 0) return null;
+    const labels = history.map(h => h.cycle);
+    const resources = ['water', 'food', 'energy', 'land'];
+    const colors = { water: '#67e8f9', food: '#6ee7b7', energy: '#fcd34d', land: '#c4b5fd' };
+    return {
+      labels,
+      datasets: resources.map(res => ({
+        label: res.charAt(0).toUpperCase() + res.slice(1),
+        data: history.map(h => {
+          const alive = (h.states || []).filter(s => s.alive !== false);
+          if (alive.length === 0) return 0;
+          return Math.round(alive.reduce((sum, s) => sum + (s.resources?.[res] || 0), 0) / alive.length);
+        }),
+        borderColor: colors[res],
+        fill: false,
+      }))
+    };
+  }, [history]);
+
   if (history.length < 2) {
     return (
       <div>
         <div className="text-center text-xs text-gray-600 py-10">
-          <div className="text-2xl mb-2 opacity-40">📈</div>
+          <div className="text-2xl mb-2 opacity-40">--</div>
           Run the simulation to see trend data.
         </div>
       </div>
@@ -134,6 +155,14 @@ function TrendCharts({ history = [] }) {
           </h3>
           <div className="h-36">
             {happinessData && <Line data={happinessData} options={{ ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, max: 100 } } }} />}
+          </div>
+        </div>
+        <div>
+          <h3 className="text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-cyan-400/60" /> Avg Resources
+          </h3>
+          <div className="h-36">
+            {resourceData && <Line data={resourceData} options={{ ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, max: 100 } } }} />}
           </div>
         </div>
       </div>

@@ -151,7 +151,8 @@ Where:
 
 ```
 Successful trade: trust += 1 (max 10)
-Failed/refused:   trust -= 2 (min 0)
+No trade this cycle: trust -= 0.1 (natural decay)
+Trust reaches 0: relationship removed
 Alliance threshold: trust ≥ 7 AND trades ≥ 5
 Alliance bonus: +5% better exchange rates
 ```
@@ -201,7 +202,7 @@ Step 5: WORLD UPDATE
 
 Step 6: COLLAPSE CHECK
   If any resource = 0 AND population < 100 → COLLAPSE
-  Collapsed state removed, 20% resources redistributed
+  Collapsed state marked dead, recorded with reason and cycle
 ```
 
 ---
@@ -210,23 +211,28 @@ Step 6: COLLAPSE CHECK
 
 ### India Map (Canvas API)
 
-- 8 hexagons positioned to approximate India geography
-- Fill color = health gradient (green → yellow → red → grey)
-- Animated SVG-style trade lines between active partners
+- Real GeoJSON boundaries rendered on HTML5 Canvas
+- Fill color = health gradient (green -> yellow -> orange -> red -> grey)
+- Animated trade arcs and alliance lines between active partners
 - Pulse effects on event triggers
+- Zoom and pan controls for map-only navigation
+- Hover tooltips with resource breakdowns
 
 ### Charts (Chart.js + react-chartjs-2)
 
-- Horizontal bar chart: resources per state (4 bars per state)
+- Resource dashboard: card grid with resource bars per state
 - Line chart: population over time (8 lines)
 - Line chart: happiness over time (8 lines)
-- Network diagram: trade relationships
+- Line chart: avg resources over time (water/food/energy/land)
+- Trade network list with trust bars and alliance labels
 
 ### Design System
 
-- Dark navy background with glassmorphism cards
+- Dark obsidian background with glassmorphism cards
 - Tailwind CSS v4 for utility-first styling
+- Ember & Violet color palette (violet/fuchsia/rose/amber accents)
 - CSS animations for state transitions and events
+- Three.js animated particle background
 - Inter font family from Google Fonts
 
 ---
@@ -235,30 +241,28 @@ Step 6: COLLAPSE CHECK
 
 ```
 src/
-├── App.jsx                    ← Main layout
+├── App.jsx                    ← Main layout + simulation orchestrator
 ├── components/
 │   ├── Header.jsx             ← Title, cycle counter, controls
-│   ├── IndiaMap.jsx            ← Canvas-based hex map
-│   ├── ResourceDashboard.jsx   ← Bar charts per state
-│   ├── TrendCharts.jsx         ← Line charts over time
-│   ├── EventLog.jsx            ← Scrolling event timeline
-│   ├── StateDetail.jsx         ← Modal popup for state info
-│   ├── TradeNetwork.jsx        ← Trade relationship view
-│   ├── AnalysisPanel.jsx       ← Strategy + collapse analysis
-│   ├── StoryPanel.jsx          ← Auto-generated narrative
-│   ├── GodMode.jsx             ← God mode controls
-│   ├── WhatIfPanel.jsx         ← Scenario buttons
-│   └── ComparisonView.jsx      ← Split-screen AI vs Random
+│   ├── IndiaMap.jsx           ← Canvas-based GeoJSON map with zoom/pan
+│   ├── ResourceDashboard.jsx  ← Resource card grid per state
+│   ├── TrendCharts.jsx        ← Line charts (population, happiness, resources)
+│   ├── EventLog.jsx           ← Scrolling event timeline
+│   ├── StateDetail.jsx        ← Detail popup for state info
+│   ├── TradeNetwork.jsx       ← Trade relationship list
+│   └── ThreeBackground.jsx    ← Three.js animated particle background
+├── features/
+│   ├── AnalysisPanel.jsx      ← Strategy + collapse analysis
+│   ├── StoryPanel.jsx         ← Auto-generated narrative
+│   ├── GodMode.jsx            ← God mode controls
+│   ├── WhatIfPanel.jsx        ← Scenario buttons
+│   └── ComparisonView.jsx     ← AI vs Random comparison
 ├── engine/
 │   ├── Agent.js               ← Q-Learning class
-│   ├── World.js               ← Simulation engine
-│   ├── TradeSystem.js         ← Trade matching + trust
-│   └── EventSystem.js         ← Event loading + triggering
+│   ├── World.js               ← Simulation engine + event system
+│   └── TradeSystem.js         ← Trade matching + trust + decay
 ├── data/
 │   └── indiaStates.json       ← 8 states + 72 events
-└── utils/
-    ├── analysis.js            ← Analysis computations
-    └── storyGenerator.js      ← Narrative generation
 ```
 
 ---

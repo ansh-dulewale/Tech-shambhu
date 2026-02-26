@@ -5,7 +5,7 @@ const SCENARIOS = [
     {
         id: "no_water_rajasthan",
         label: "What if Rajasthan had no water?",
-        emoji: "🏜️",
+        emoji: null,
         description: "Rajasthan starts with water = 5",
         changes: { rajasthan: { water: 5 } },
         color: "#ff9100",
@@ -13,7 +13,7 @@ const SCENARIOS = [
     {
         id: "no_trade",
         label: "What if no trade allowed?",
-        emoji: "🚫",
+        emoji: null,
         description: "All trade is disabled globally",
         changes: { global: { tradeDisabled: true } },
         color: "#ff1744",
@@ -21,7 +21,7 @@ const SCENARIOS = [
     {
         id: "double_disasters",
         label: "What if disasters doubled?",
-        emoji: "💥",
+        emoji: null,
         description: "Event rate increased to 60%",
         changes: { global: { eventRate: 0.6 } },
         color: "#ff5252",
@@ -29,7 +29,7 @@ const SCENARIOS = [
     {
         id: "full_cooperation",
         label: "What if all states cooperated?",
-        emoji: "🤝",
+        emoji: null,
         description: "All states forced to trade every cycle",
         changes: { global: { forceTrade: true } },
         color: "#00e676",
@@ -37,7 +37,7 @@ const SCENARIOS = [
     {
         id: "double_population_up",
         label: "What if UP population doubled?",
-        emoji: "👥",
+        emoji: null,
         description: "Uttar Pradesh population starts at 1400",
         changes: { uttarpradesh: { population: 1400 } },
         color: "#40c4ff",
@@ -59,7 +59,7 @@ function WhatIfPanel({ onRunScenario, scenarioResult }) {
     return (
         <div className="glass-card-glow p-5">
             <h2 className="text-lg font-bold mb-4 text-purple-400 flex items-center gap-2.5 font-display">
-                <span className="animate-glow text-xl">🔮</span> What-If Scenarios
+                What-If Scenarios
             </h2>
 
             <div className="space-y-2.5">
@@ -79,7 +79,7 @@ function WhatIfPanel({ onRunScenario, scenarioResult }) {
               hover:scale-[1.01] hover:-translate-y-px active:scale-[0.99]`}
                     >
                         <div className="flex items-center gap-2">
-                            <span className="text-lg">{scenario.emoji}</span>
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: scenario.color }} />
                             <div className="flex-1">
                                 <p className="font-medium text-gray-200 text-xs">{scenario.label}</p>
                                 <p className="text-xs text-gray-500 mt-0.5">{scenario.description}</p>

@@ -23,7 +23,7 @@ function TradeNetwork({ trades = [], alliances = [] }) {
     <div>
       {trades.length === 0 && alliances.length === 0 && (
         <div className="text-center text-xs text-gray-600 py-8">
-          <div className="text-2xl mb-2 opacity-40">🤝</div>
+          <div className="text-2xl mb-2 opacity-40">--</div>
           No active trades yet. Start the simulation.
         </div>
       )}

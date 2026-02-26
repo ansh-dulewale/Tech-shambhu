@@ -58,7 +58,7 @@ function EventLog({ events = [] }) {
       <div ref={scrollRef} className="overflow-y-auto max-h-52 space-y-1.5 pr-1">
         {events.length === 0 && (
           <div className="text-center text-xs text-gray-600 py-8">
-            <div className="text-2xl mb-2 opacity-40">📡</div>
+            <div className="text-2xl mb-2 opacity-40">--</div>
             No events yet. Start the simulation to begin.
           </div>
         )}
