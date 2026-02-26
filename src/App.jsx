@@ -43,7 +43,12 @@ function App() {
     setCycle(result.cycle);
     setStates(result.states);
     if (result.event) setEvents((prev) => [...prev, result.event]);
-    setTrades(result.trades);
+    // Accumulate trades from last 5 cycles so Trade Network always has data
+    setTrades((prev) => {
+      const updated = [...prev, ...(result.trades || [])];
+      // Keep only the most recent 20 trades to avoid clutter
+      return updated.slice(-20);
+    });
     setAlliances(result.alliances);
     setHistory((prev) => [...prev, result]);
   }, [world]);
