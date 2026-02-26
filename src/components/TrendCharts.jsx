@@ -1,18 +1,19 @@
 import React, { useMemo } from 'react';
-import { Line } from 'react-chartjs-2';
+import { Line, Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
   Filler
 } from 'chart.js';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
 
 const STATE_COLORS = {
   punjab: '#4CAF50',
@@ -83,35 +84,54 @@ function TrendCharts({ history = [] }) {
           return state ? state.population : 0;
         }),
         borderColor: STATE_COLORS[id] || '#888',
-        fill: false,
+        backgroundColor: (STATE_COLORS[id] || '#888') + '18',
+        fill: true,
+        borderWidth: 1.5,
       }))
     };
   }, [history]);
 
-  const happinessData = useMemo(() => {
+  // Happiness: horizontal bar chart showing latest snapshot per state
+  const happinessBarData = useMemo(() => {
     if (history.length === 0) return null;
-    const labels = history.map(h => h.cycle);
-    const stateIds = history[0]?.states?.map(s => s.id) || [];
+    const latest = history[history.length - 1];
+    const aliveStates = (latest.states || []).filter(s => s.alive !== false);
+    const sorted = [...aliveStates].sort((a, b) => (b.happiness || 0) - (a.happiness || 0));
     return {
-      labels,
-      datasets: stateIds.map(id => ({
-        label: history[0].states.find(s => s.id === id)?.name || id,
-        data: history.map(h => {
-          const state = h.states.find(s => s.id === id);
-          return state ? state.happiness : 0;
+      labels: sorted.map(s => s.name),
+      datasets: [{
+        label: 'Happiness',
+        data: sorted.map(s => s.happiness || 0),
+        backgroundColor: sorted.map(s => {
+          const h = s.happiness || 0;
+          if (h >= 70) return 'rgba(52, 211, 153, 0.5)';
+          if (h >= 40) return 'rgba(251, 191, 36, 0.5)';
+          return 'rgba(248, 113, 113, 0.5)';
         }),
-        borderColor: STATE_COLORS[id] || '#888',
-        fill: false,
-      }))
+        borderColor: sorted.map(s => {
+          const h = s.happiness || 0;
+          if (h >= 70) return 'rgba(52, 211, 153, 0.9)';
+          if (h >= 40) return 'rgba(251, 191, 36, 0.9)';
+          return 'rgba(248, 113, 113, 0.9)';
+        }),
+        borderWidth: 1,
+        borderRadius: 4,
+        barThickness: 10,
+      }]
     };
   }, [history]);
 
-  // Resource trend: compute average across all alive states for each resource
+  // Resource trend: gradient-filled area chart
   const resourceData = useMemo(() => {
     if (history.length === 0) return null;
     const labels = history.map(h => h.cycle);
     const resources = ['water', 'food', 'energy', 'land'];
-    const colors = { water: '#67e8f9', food: '#6ee7b7', energy: '#fcd34d', land: '#c4b5fd' };
+    const colors = {
+      water: { border: '#67e8f9', bg: 'rgba(103, 232, 249, 0.15)' },
+      food: { border: '#6ee7b7', bg: 'rgba(110, 231, 183, 0.15)' },
+      energy: { border: '#fcd34d', bg: 'rgba(252, 211, 77, 0.15)' },
+      land: { border: '#c4b5fd', bg: 'rgba(196, 181, 253, 0.15)' },
+    };
     return {
       labels,
       datasets: resources.map(res => ({
@@ -121,8 +141,12 @@ function TrendCharts({ history = [] }) {
           if (alive.length === 0) return 0;
           return Math.round(alive.reduce((sum, s) => sum + (s.resources?.[res] || 0), 0) / alive.length);
         }),
-        borderColor: colors[res],
-        fill: false,
+        borderColor: colors[res].border,
+        backgroundColor: colors[res].bg,
+        fill: true,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 4,
       }))
     };
   }, [history]);
@@ -197,6 +221,35 @@ function TrendCharts({ history = [] }) {
     },
   }), []);
 
+  // Options for horizontal happiness bar chart
+  const happinessBarOptions = useMemo(() => ({
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 400 },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        ...chartOptions.plugins.tooltip,
+        callbacks: {
+          label: (ctx) => `Happiness: ${ctx.parsed.x}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,255,255,0.02)' },
+        ticks: { color: '#4a4a4a', font: { size: 8 } },
+        min: 0,
+        max: 100,
+      },
+      y: {
+        grid: { display: false },
+        ticks: { color: '#9ca3af', font: { size: 9, family: 'Inter, system-ui' } },
+      },
+    },
+  }), []);
+
   if (history.length < 2) {
     return (
       <div>
@@ -214,6 +267,7 @@ function TrendCharts({ history = [] }) {
         <div>
           <h3 className="text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-violet-400/60" /> Population
+            <span className="text-[8px] text-gray-600 font-normal ml-auto">Area Chart</span>
           </h3>
           <div className="h-36">
             {populationData && <Line data={populationData} options={chartOptions} />}
@@ -222,14 +276,16 @@ function TrendCharts({ history = [] }) {
         <div>
           <h3 className="text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400/60" /> Happiness
+            <span className="text-[8px] text-gray-600 font-normal ml-auto">Current Snapshot</span>
           </h3>
-          <div className="h-36">
-            {happinessData && <Line data={happinessData} options={{ ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, max: 100 } } }} />}
+          <div className="h-40">
+            {happinessBarData && <Bar data={happinessBarData} options={happinessBarOptions} />}
           </div>
         </div>
         <div>
           <h3 className="text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cyan-400/60" /> Avg Resources
+            <span className="text-[8px] text-gray-600 font-normal ml-auto">Filled Area</span>
           </h3>
           <div className="h-36">
             {resourceData && <Line data={resourceData} options={{ ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, max: 100 } } }} />}
