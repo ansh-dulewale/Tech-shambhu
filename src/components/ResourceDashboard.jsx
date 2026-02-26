@@ -15,14 +15,20 @@ function ResourceBar({ value, color, label }) {
     <div className="flex items-center gap-2 mb-1">
       <span className="text-xs text-gray-500 w-12 text-right uppercase tracking-wider">{label}</span>
       <div className="flex-1 h-2.5 bg-gray-800/80 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-700 ease-out ${isCritical ? 'animate-pulse' : ''}`}
-          style={{
-            width: `${Math.max(value, 2)}%`,
-            backgroundColor: isLow ? '#ff1744' : color,
-            boxShadow: isLow ? '0 0 8px rgba(255,23,68,0.4)' : 'none'
-          }}
-        />
+        {value > 0 ? (
+          <div
+            className={`h-full rounded-full transition-all duration-700 ease-out ${isCritical ? 'animate-pulse' : ''}`}
+            style={{
+              width: `${Math.max(value, 4)}%`,
+              backgroundColor: isLow ? '#ff1744' : color,
+              boxShadow: isLow ? '0 0 8px rgba(255,23,68,0.4)' : 'none'
+            }}
+          />
+        ) : (
+          <div className="h-full w-full flex items-center justify-center">
+            <span className="text-[7px] text-red-500/60 font-bold uppercase tracking-wider">depleted</span>
+          </div>
+        )}
       </div>
       <span
         className="text-xs w-7 text-right font-semibold tabular-nums"
