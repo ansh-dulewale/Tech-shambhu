@@ -71,7 +71,7 @@ class TradeSystem {
 
         // Check complementary: A has what B needs, B has what A needs
         const complementary = (a.surplus === b.need && b.surplus === a.need) ||
-                              (a.surplus === b.need) || (b.surplus === a.need);
+          (a.surplus === b.need) || (b.surplus === a.need);
 
         if (complementary) {
           const trust = this.getTrust(a.id, b.id);
@@ -108,6 +108,10 @@ class TradeSystem {
     }
 
     this.tradeHistory.push(...trades);
+    // Cap history to prevent unbounded memory growth
+    if (this.tradeHistory.length > 200) {
+      this.tradeHistory = this.tradeHistory.slice(-200);
+    }
     return trades;
   }
 

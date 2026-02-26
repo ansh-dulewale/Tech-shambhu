@@ -42,7 +42,7 @@ function MetricCard({ label, aiValue, randomValue }) {
     );
 }
 
-function ComparisonView({ aiResult, randomResult }) {
+function ComparisonView({ aiResult, randomResult, onRunComparison }) {
     // Compute overall advantage
     const computeAdvantage = () => {
         if (!aiResult || !randomResult) return null;
@@ -76,9 +76,21 @@ function ComparisonView({ aiResult, randomResult }) {
                 <h2 className="text-lg font-semibold mb-3 text-red-400 flex items-center gap-2">
                     ⚔️ AI vs Random
                 </h2>
-                <p className="text-xs text-gray-500 italic text-center py-6">
-                    Run the simulation to compare AI agents against random decision-making.
+                <p className="text-xs text-gray-500 italic text-center pt-3 pb-2">
+                    Run 100 cycles each: Q-Learning AI vs Random agents — same world, different brains.
                 </p>
+                <button
+                    id="comparison-run-btn"
+                    onClick={onRunComparison}
+                    className="w-full px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300
+                               bg-gradient-to-r from-cyan-500/20 to-orange-500/20
+                               border border-cyan-400/30 text-white
+                               hover:from-cyan-500/30 hover:to-orange-500/30 hover:border-cyan-400/50
+                               hover:shadow-lg hover:shadow-cyan-500/10
+                               active:scale-[0.98]"
+                >
+                    ⚔️ Run Comparison (100 cycles)
+                </button>
             </div>
         );
     }
