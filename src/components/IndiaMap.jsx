@@ -174,18 +174,15 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
 
       // Action badge
       if (state.action) {
-        const actionIcons = {
-          HARVEST: '🌾', CONSERVE: '🛡️', TRADE: '🤝',
-          EXPAND: '📈', DEFEND: '⚔️', INNOVATE: '💡'
-        };
-        ctx.font = '12px system-ui';
-        ctx.fillText(actionIcons[state.action] || '', pos.x, pos.y + 10);
+        ctx.fillStyle = 'rgba(186, 146, 255, 0.9)';
+        ctx.font = '600 8px Inter, system-ui';
+        ctx.fillText(state.action, pos.x, pos.y + 10);
       }
 
       // Population
-      ctx.fillStyle = '#9e9e9e';
-      ctx.font = '8px Inter, system-ui';
-      ctx.fillText(`👥 ${state.population}`, pos.x, pos.y + 24);
+      ctx.fillStyle = '#757575';
+      ctx.font = '7px Inter, system-ui';
+      ctx.fillText(`P: ${state.population}`, pos.x, pos.y + 22);
 
       // Collapsed X
       if (!state.alive) {
@@ -196,10 +193,11 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
     });
 
     // Title
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    ctx.font = 'bold 14px Inter, system-ui';
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.font = '600 11px Inter, system-ui';
     ctx.textAlign = 'center';
-    ctx.fillText('🇮🇳 INDIA', 210, 540);
+    ctx.letterSpacing = '4px';
+    ctx.fillText('INDIA', 210, 540);
 
     animFrameRef.current++;
   }, [states, trades, alliances, activeEvent]);
@@ -234,9 +232,7 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
 
   return (
     <div className="glass-card p-4">
-      <h2 className="text-lg font-semibold mb-3 text-white flex items-center gap-2">
-        🗺️ <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">India Resource Map</span>
-      </h2>
+      <h2 className="text-sm font-semibold mb-3 text-white uppercase tracking-wider">India Resource Map</h2>
       <div className="flex justify-center">
         <canvas
           ref={canvasRef}
@@ -245,12 +241,12 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
           style={{ background: 'rgba(10, 14, 39, 0.5)' }}
         />
       </div>
-      <div className="flex justify-center gap-4 mt-3 text-xs text-gray-400">
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Healthy</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block"></span> At Risk</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-500 inline-block"></span> Critical</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span> Danger</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-500 inline-block"></span> Collapsed</span>
+      <div className="flex justify-center gap-4 mt-3 text-[10px] text-gray-500 uppercase tracking-wider">
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span> Healthy</span>
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span> At Risk</span>
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block"></span> Critical</span>
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> Danger</span>
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-gray-600 inline-block"></span> Collapsed</span>
       </div>
     </div>
   );
