@@ -205,7 +205,7 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-5">
       <Header
         cycle={cycle}
         speed={speed}
@@ -216,7 +216,7 @@ function App() {
         onSpeedChange={setSpeed}
       />
 
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-12 gap-5">
         {/* Left Column: Map + Event Log */}
         <div className="col-span-4 space-y-4">
           <IndiaMap
