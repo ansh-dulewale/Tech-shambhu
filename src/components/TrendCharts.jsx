@@ -15,6 +15,29 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
 
+// Crosshair plugin — draws a vertical line at the hovered x position
+const crosshairPlugin = {
+  id: 'crosshair',
+  afterDraw(chart) {
+    if (chart.tooltip?._active?.length) {
+      const ctx = chart.ctx;
+      const x = chart.tooltip._active[0].element.x;
+      const topY = chart.scales.y.top;
+      const bottomY = chart.scales.y.bottom;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x, topY);
+      ctx.lineTo(x, bottomY);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx.setLineDash([4, 3]);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+};
+ChartJS.register(crosshairPlugin);
+
 const STATE_COLORS = {
   punjab: '#4CAF50',
   rajasthan: '#FF9800',
@@ -51,7 +74,13 @@ const chartOptions = {
       borderWidth: 1,
       cornerRadius: 6,
       padding: 8,
+      mode: 'index',
+      intersect: false,
     }
+  },
+  interaction: {
+    mode: 'index',
+    intersect: false,
   },
   scales: {
     x: {
@@ -65,7 +94,7 @@ const chartOptions = {
     }
   },
   elements: {
-    point: { radius: 0, hoverRadius: 3 },
+    point: { radius: 0, hoverRadius: 5, hoverBackgroundColor: '#fff', hoverBorderWidth: 2 },
     line: { tension: 0.4, borderWidth: 1.5 },
   }
 };
