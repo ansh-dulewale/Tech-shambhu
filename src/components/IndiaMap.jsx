@@ -1,8 +1,12 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 
-const HEX_RADIUS = 38;
+const CANVAS_W = 420;
+const CANVAS_H = 560;
 
-// Health color based on average resources
+const RESOURCE_COLORS = {
+  water: '#00d4ff', food: '#00e676', energy: '#ffab00', land: '#8d6e63',
+};
+
 function getHealthColor(state) {
   if (!state.alive) return '#424242';
   const avg = (state.resources.water + state.resources.food + state.resources.energy + state.resources.land) / 4;
@@ -12,241 +16,452 @@ function getHealthColor(state) {
   return '#ff1744';
 }
 
-function getHealthGlow(state) {
-  if (!state.alive) return 'rgba(66,66,66,0.2)';
-  const avg = (state.resources.water + state.resources.food + state.resources.energy + state.resources.land) / 4;
-  if (avg > 60) return 'rgba(0,200,83,0.3)';
-  if (avg > 40) return 'rgba(255,171,0,0.3)';
-  if (avg > 20) return 'rgba(255,109,0,0.3)';
-  return 'rgba(255,23,68,0.3)';
+// ─── Geo projection (manual Mercator fit to canvas) ─────────────────
+function createProjection(features) {
+  // Compute bounding box of ALL features
+  let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+  function walk(coords) {
+    if (typeof coords[0] === 'number') {
+      minLon = Math.min(minLon, coords[0]);
+      maxLon = Math.max(maxLon, coords[0]);
+      minLat = Math.min(minLat, coords[1]);
+      maxLat = Math.max(maxLat, coords[1]);
+      return;
+    }
+    coords.forEach(c => walk(c));
+  }
+  features.forEach(f => walk(f.geometry.coordinates));
+
+  const pad = 25;
+  const lonSpan = maxLon - minLon;
+  const latSpan = maxLat - minLat;
+  const scaleX = (CANVAS_W - pad * 2) / lonSpan;
+  const scaleY = (CANVAS_H - pad * 2) / latSpan;
+  const scale = Math.min(scaleX, scaleY);
+
+  const cx = (minLon + maxLon) / 2;
+  const cy = (minLat + maxLat) / 2;
+  const ox = CANVAS_W / 2;
+  const oy = CANVAS_H / 2;
+
+  return function project(lon, lat) {
+    return [
+      ox + (lon - cx) * scale,
+      oy - (lat - cy) * scale, // invert Y
+    ];
+  };
 }
 
-// Draw a hexagon
-function drawHex(ctx, x, y, radius) {
-  ctx.beginPath();
-  for (let i = 0; i < 6; i++) {
-    const angle = (Math.PI / 3) * i - Math.PI / 6;
-    const px = x + radius * Math.cos(angle);
-    const py = y + radius * Math.sin(angle);
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
-  }
+// ─── Draw a polygon ring on canvas ──────────────────────────────────
+function drawRing(ctx, ring, project) {
+  ring.forEach((coord, i) => {
+    const [x, y] = project(coord[0], coord[1]);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
   ctx.closePath();
 }
 
-// Check if point is inside hexagon
-function isInsideHex(px, py, hx, hy, radius) {
-  const dx = Math.abs(px - hx);
-  const dy = Math.abs(py - hy);
-  if (dx > radius || dy > radius) return false;
-  return (dx * dx + dy * dy) <= radius * radius * 1.2;
+function drawGeometry(ctx, geometry, project) {
+  ctx.beginPath();
+  if (geometry.type === 'Polygon') {
+    geometry.coordinates.forEach(ring => drawRing(ctx, ring, project));
+  } else if (geometry.type === 'MultiPolygon') {
+    geometry.coordinates.forEach(poly =>
+      poly.forEach(ring => drawRing(ctx, ring, project))
+    );
+  }
 }
 
+// ─── Compute centroid of a feature ──────────────────────────────────
+function getCentroid(geometry, project) {
+  let sx = 0, sy = 0, n = 0;
+  function walk(coords) {
+    if (typeof coords[0] === 'number') {
+      const [px, py] = project(coords[0], coords[1]);
+      sx += px; sy += py; n++;
+      return;
+    }
+    coords.forEach(c => walk(c));
+  }
+  walk(geometry.coordinates);
+  return n ? [sx / n, sy / n] : [CANVAS_W / 2, CANVAS_H / 2];
+}
+
+// ─── Point-in-polygon test (ray casting) ────────────────────────────
+function pointInFeature(px, py, feature, project) {
+  function insideRing(ring) {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = project(ring[i][0], ring[i][1]);
+      const [xj, yj] = project(ring[j][0], ring[j][1]);
+      if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) {
+        inside = !inside;
+      }
+    }
+    return inside;
+  }
+  const { geometry } = feature;
+  if (geometry.type === 'Polygon') {
+    return insideRing(geometry.coordinates[0]);
+  } else if (geometry.type === 'MultiPolygon') {
+    return geometry.coordinates.some(poly => insideRing(poly[0]));
+  }
+  return false;
+}
+
+// ─── Particle system ────────────────────────────────────────────────
+class Particle {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * CANVAS_W;
+    this.y = Math.random() * CANVAS_H;
+    this.vx = (Math.random() - 0.5) * 0.2;
+    this.vy = -0.15 - Math.random() * 0.2;
+    this.life = Math.random() * 120 + 60;
+    this.maxLife = this.life;
+    this.size = Math.random() * 1.2 + 0.3;
+  }
+  update() { this.x += this.vx; this.y += this.vy; this.life--; if (this.life <= 0) this.reset(); }
+  draw(ctx) {
+    const a = (this.life / this.maxLife) * 0.12;
+    ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(124,77,255,${a})`; ctx.fill();
+  }
+}
+
+// ─── Main Component ─────────────────────────────────────────────────
 function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onStateClick }) {
   const canvasRef = useRef(null);
-  const animFrameRef = useRef(0);
+  const animRef = useRef(0);
+  const particlesRef = useRef(Array.from({ length: 25 }, () => new Particle()));
+  const [hovered, setHovered] = useState(null);
+  const hoveredRef = useRef(null);
+  const [geoData, setGeoData] = useState(null);
 
-  // State positions (approximate India geography)
-  const positions = {
-    punjab:       { x: 160, y: 75 },
-    rajasthan:    { x: 120, y: 175 },
-    uttarpradesh: { x: 250, y: 135 },
-    gujarat:      { x: 90, y: 270 },
-    jharkhand:    { x: 310, y: 235 },
-    maharashtra:  { x: 170, y: 340 },
-    tamilnadu:    { x: 225, y: 460 },
-    kerala:       { x: 165, y: 480 },
-  };
+  useEffect(() => { hoveredRef.current = hovered; }, [hovered]);
+
+  // Load GeoJSON
+  useEffect(() => {
+    fetch('/geo/india.json')
+      .then(r => r.json())
+      .then(data => setGeoData(data))
+      .catch(err => console.warn('GeoJSON load failed:', err));
+  }, []);
+
+  // Build projection once
+  const project = useMemo(() => {
+    if (!geoData) return null;
+    return createProjection(geoData.features);
+  }, [geoData]);
+
+  // Separate simulation vs background features
+  const { simFeatures, bgFeatures, centroids } = useMemo(() => {
+    if (!geoData || !project) return { simFeatures: [], bgFeatures: [], centroids: {} };
+    const sim = [];
+    const bg = [];
+    const cents = {};
+    geoData.features.forEach(f => {
+      if (f.properties.id && f.properties.id !== 'bg') {
+        sim.push(f);
+        cents[f.properties.id] = getCentroid(f.geometry, project);
+      } else {
+        bg.push(f);
+      }
+    });
+    return { simFeatures: sim, bgFeatures: bg, centroids: cents };
+  }, [geoData, project]);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !project) return;
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
-    
-    canvas.width = 420 * dpr;
-    canvas.height = 560 * dpr;
+
+    canvas.width = CANVAS_W * dpr;
+    canvas.height = CANVAS_H * dpr;
     ctx.scale(dpr, dpr);
-    canvas.style.width = '420px';
-    canvas.style.height = '560px';
+    canvas.style.width = CANVAS_W + 'px';
+    canvas.style.height = CANVAS_H + 'px';
 
-    // Clear
-    ctx.clearRect(0, 0, 420, 560);
+    const t = animRef.current;
+    ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
 
-    // Draw background grid dots
-    ctx.fillStyle = 'rgba(255,255,255,0.02)';
-    for (let x = 0; x < 420; x += 20) {
-      for (let y = 0; y < 560; y += 20) {
-        ctx.beginPath();
-        ctx.arc(x, y, 1, 0, Math.PI * 2);
-        ctx.fill();
+    // ── Grid dots ──
+    ctx.fillStyle = 'rgba(255,255,255,0.012)';
+    for (let gx = 0; gx < CANVAS_W; gx += 28) {
+      for (let gy = 0; gy < CANVAS_H; gy += 28) {
+        ctx.beginPath(); ctx.arc(gx, gy, 0.5, 0, Math.PI * 2); ctx.fill();
       }
     }
 
-    // Draw trade lines
-    if (trades && trades.length > 0) {
-      trades.forEach(trade => {
-        const fromPos = positions[trade.from];
-        const toPos = positions[trade.to];
-        if (!fromPos || !toPos) return;
+    // ── Particles ──
+    particlesRef.current.forEach(p => { p.update(); p.draw(ctx); });
 
+    // ── Background states (dim outlines) ──
+    bgFeatures.forEach(f => {
+      drawGeometry(ctx, f.geometry, project);
+      ctx.fillStyle = 'rgba(30,30,60,0.3)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    });
+
+    // Build state lookup
+    const stateMap = {};
+    states.forEach(s => (stateMap[s.id] = s));
+
+    // ── Alliance arcs ──
+    if (alliances?.length) {
+      alliances.forEach(al => {
+        if (!al.states || al.states.length < 2) return;
+        const c1 = centroids[al.states[0]], c2 = centroids[al.states[1]];
+        if (!c1 || !c2) return;
+        ctx.save();
+        ctx.shadowColor = 'rgba(255,215,0,0.4)';
+        ctx.shadowBlur = 8;
         ctx.beginPath();
-        ctx.moveTo(fromPos.x, fromPos.y);
+        ctx.moveTo(c1[0], c1[1]);
+        ctx.quadraticCurveTo((c1[0] + c2[0]) / 2, (c1[1] + c2[1]) / 2 - 30, c2[0], c2[1]);
+        ctx.strokeStyle = `rgba(255,215,0,${0.35 + Math.sin(t * 0.04) * 0.15})`;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
 
-        // Curved line
-        const midX = (fromPos.x + toPos.x) / 2;
-        const midY = (fromPos.y + toPos.y) / 2 - 30;
-        ctx.quadraticCurveTo(midX, midY, toPos.x, toPos.y);
-
-        ctx.strokeStyle = 'rgba(124, 77, 255, 0.4)';
-        ctx.lineWidth = Math.max(1, (trade.trust || 1) / 3);
+    // ── Trade arcs ──
+    if (trades?.length) {
+      trades.forEach(tr => {
+        const c1 = centroids[tr.from], c2 = centroids[tr.to];
+        if (!c1 || !c2) return;
+        ctx.beginPath();
+        ctx.moveTo(c1[0], c1[1]);
+        ctx.quadraticCurveTo((c1[0] + c2[0]) / 2, (c1[1] + c2[1]) / 2 - 20, c2[0], c2[1]);
+        ctx.strokeStyle = 'rgba(124,77,255,0.35)';
+        ctx.lineWidth = Math.max(1, (tr.trust || 1) / 3);
         ctx.setLineDash([5, 5]);
-        ctx.lineDashOffset = -(animFrameRef.current * 0.5);
+        ctx.lineDashOffset = -(t * 0.5);
         ctx.stroke();
         ctx.setLineDash([]);
       });
     }
 
-    // Draw alliance lines (thicker, golden)
-    if (alliances && alliances.length > 0) {
-      alliances.forEach(alliance => {
-        if (alliance.states && alliance.states.length >= 2) {
-          const pos1 = positions[alliance.states[0]];
-          const pos2 = positions[alliance.states[1]];
-          if (!pos1 || !pos2) return;
+    // ── Simulation states (colored shapes) ──
+    simFeatures.forEach(feature => {
+      const id = feature.properties.id;
+      const state = stateMap[id];
+      if (!state) return;
 
-          ctx.beginPath();
-          ctx.moveTo(pos1.x, pos1.y);
-          const midX = (pos1.x + pos2.x) / 2;
-          const midY = (pos1.y + pos2.y) / 2 - 25;
-          ctx.quadraticCurveTo(midX, midY, pos2.x, pos2.y);
-          ctx.strokeStyle = 'rgba(255, 215, 0, 0.6)';
-          ctx.lineWidth = 3;
-          ctx.stroke();
-        }
-      });
-    }
+      const color = getHealthColor(state);
+      const isHov = hoveredRef.current === id;
+      const isEvent = activeEvent?.stateId === id;
 
-    // Draw states
-    states.forEach(state => {
-      const pos = positions[state.id];
-      if (!pos) return;
-
-      const healthColor = getHealthColor(state);
-      const glowColor = getHealthGlow(state);
-
-      // Outer glow
+      // Fill
       ctx.save();
-      ctx.shadowColor = glowColor;
-      ctx.shadowBlur = 20;
-
-      // Hex fill
-      drawHex(ctx, pos.x, pos.y, HEX_RADIUS);
-      const gradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, HEX_RADIUS);
-      gradient.addColorStop(0, healthColor + '40');
-      gradient.addColorStop(1, healthColor + '15');
-      ctx.fillStyle = gradient;
+      if (state.alive) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = isHov ? 20 : 10;
+      }
+      drawGeometry(ctx, feature.geometry, project);
+      const cent = centroids[id] || [CANVAS_W / 2, CANVAS_H / 2];
+      const grad = ctx.createRadialGradient(cent[0], cent[1], 0, cent[0], cent[1], 80);
+      grad.addColorStop(0, (state.alive ? color : '#333') + (isHov ? '70' : '45'));
+      grad.addColorStop(1, (state.alive ? color : '#222') + (isHov ? '30' : '15'));
+      ctx.fillStyle = grad;
       ctx.fill();
-
-      // Hex border
-      drawHex(ctx, pos.x, pos.y, HEX_RADIUS);
-      ctx.strokeStyle = healthColor + '80';
-      ctx.lineWidth = 2;
-      ctx.stroke();
       ctx.restore();
 
-      // Event pulse animation
-      if (activeEvent && activeEvent.stateId === state.id) {
-        const pulseSize = HEX_RADIUS + 8 + Math.sin(animFrameRef.current * 0.1) * 5;
-        drawHex(ctx, pos.x, pos.y, pulseSize);
-        ctx.strokeStyle = activeEvent.type === 'drought' || activeEvent.type === 'flood'
-          ? 'rgba(255, 23, 68, 0.5)'
-          : 'rgba(0, 200, 83, 0.5)';
-        ctx.lineWidth = 2;
+      // Border
+      drawGeometry(ctx, feature.geometry, project);
+      ctx.strokeStyle = color + (isHov ? 'dd' : '60');
+      ctx.lineWidth = isHov ? 2 : 1;
+      ctx.stroke();
+
+      // Hover highlight
+      if (isHov) {
+        drawGeometry(ctx, feature.geometry, project);
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 1.5;
         ctx.stroke();
       }
 
-      // State name
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 10px Inter, system-ui';
-      ctx.textAlign = 'center';
-      ctx.fillText(state.name, pos.x, pos.y - 5);
-
-      // Action badge
-      if (state.action) {
-        ctx.fillStyle = 'rgba(186, 146, 255, 0.9)';
-        ctx.font = '600 8px Inter, system-ui';
-        ctx.fillText(state.action, pos.x, pos.y + 10);
+      // Event pulse
+      if (isEvent) {
+        drawGeometry(ctx, feature.geometry, project);
+        const isNeg = ['drought', 'flood', 'earthquake', 'conflict'].includes(activeEvent.type);
+        ctx.strokeStyle = isNeg
+          ? `rgba(255,23,68,${0.4 + Math.sin(t * 0.1) * 0.3})`
+          : `rgba(0,200,83,${0.4 + Math.sin(t * 0.1) * 0.3})`;
+        ctx.lineWidth = 3;
+        ctx.stroke();
       }
 
-      // Population
-      ctx.fillStyle = '#757575';
-      ctx.font = '7px Inter, system-ui';
-      ctx.fillText(`P: ${state.population}`, pos.x, pos.y + 22);
+      // State name — with offsets for overlapping labels
+      if (cent) {
+        // Nudge labels for geographically close states
+        const labelOffsets = {
+          kerala: { dx: -25, dy: 15 },
+          tamilnadu: { dx: 25, dy: -10 },
+        };
+        const off = labelOffsets[id] || { dx: 0, dy: 0 };
+        const lx = cent[0] + off.dx;
+        const ly = cent[1] + off.dy;
 
-      // Collapsed X
-      if (!state.alive) {
-        ctx.fillStyle = 'rgba(255, 23, 68, 0.8)';
-        ctx.font = 'bold 28px system-ui';
-        ctx.fillText('✕', pos.x, pos.y + 8);
+        ctx.fillStyle = state.alive ? '#fff' : '#666';
+        ctx.font = `${isHov ? 'bold 10px' : '600 8px'} Inter, system-ui`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(state.name, lx, ly - 8);
+
+        // Action label
+        if (state.alive && state.action) {
+          ctx.fillStyle = 'rgba(186,146,255,0.85)';
+          ctx.font = '600 6px Inter, system-ui';
+          ctx.fillText(state.action, lx, ly + 3);
+        }
+
+        // Collapsed marker
+        if (!state.alive) {
+          ctx.fillStyle = 'rgba(255,23,68,0.7)';
+          ctx.font = 'bold 22px system-ui';
+          ctx.fillText('✕', lx, ly + 2);
+        }
+
+        // Mini resource bars under name
+        if (state.alive) {
+          const barW = 24, barH = 2, barGap = 3;
+          const barX = lx - barW / 2;
+          const barY = ly + 8;
+          ['water', 'food', 'energy', 'land'].forEach((key, i) => {
+            const val = state.resources[key];
+            const by = barY + i * barGap;
+            ctx.fillStyle = 'rgba(255,255,255,0.06)';
+            ctx.fillRect(barX, by, barW, barH);
+            ctx.fillStyle = val < 20 ? '#ff1744' : RESOURCE_COLORS[key];
+            ctx.globalAlpha = isHov ? 0.85 : 0.55;
+            ctx.fillRect(barX, by, Math.max(1, (val / 100) * barW), barH);
+            ctx.globalAlpha = 1;
+          });
+        }
       }
     });
 
-    // Title
-    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    // Watermark
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
     ctx.font = '600 11px Inter, system-ui';
     ctx.textAlign = 'center';
-    ctx.letterSpacing = '4px';
-    ctx.fillText('INDIA', 210, 540);
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText('I N D I A', CANVAS_W / 2, CANVAS_H - 12);
 
-    animFrameRef.current++;
-  }, [states, trades, alliances, activeEvent]);
+    animRef.current++;
+  }, [states, trades, alliances, activeEvent, project, simFeatures, bgFeatures, centroids]);
 
+  // Animation loop
   useEffect(() => {
-    let rafId;
-    const animate = () => {
-      draw();
-      rafId = requestAnimationFrame(animate);
-    };
-    animate();
-    return () => cancelAnimationFrame(rafId);
+    let raf;
+    const loop = () => { draw(); raf = requestAnimationFrame(loop); };
+    loop();
+    return () => cancelAnimationFrame(raf);
   }, [draw]);
 
+  // Click
   const handleClick = (e) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = 420 / rect.width;
-    const scaleY = 560 / rect.height;
-    const px = (e.clientX - rect.left) * scaleX;
-    const py = (e.clientY - rect.top) * scaleY;
-
-    for (const state of states) {
-      const pos = positions[state.id];
-      if (pos && isInsideHex(px, py, pos.x, pos.y, HEX_RADIUS)) {
-        onStateClick && onStateClick(state.id);
+    if (!project || !simFeatures.length) return;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const sx = CANVAS_W / rect.width, sy = CANVAS_H / rect.height;
+    const px = (e.clientX - rect.left) * sx, py = (e.clientY - rect.top) * sy;
+    for (const f of simFeatures) {
+      if (pointInFeature(px, py, f, project)) {
+        onStateClick?.(f.properties.id);
         break;
       }
     }
   };
 
+  // Hover
+  const handleMove = (e) => {
+    if (!project || !simFeatures.length) return;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const sx = CANVAS_W / rect.width, sy = CANVAS_H / rect.height;
+    const px = (e.clientX - rect.left) * sx, py = (e.clientY - rect.top) * sy;
+    let found = null;
+    for (const f of simFeatures) {
+      if (pointInFeature(px, py, f, project)) { found = f.properties.id; break; }
+    }
+    if (found !== hovered) setHovered(found);
+  };
+
+  const hovState = hovered ? states.find(s => s.id === hovered) : null;
+
   return (
     <div className="glass-card p-4">
-      <h2 className="text-sm font-semibold mb-3 text-white uppercase tracking-wider">India Resource Map</h2>
-      <div className="flex justify-center">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-semibold text-white uppercase tracking-wider">Map</h2>
+        <div className="flex items-center gap-1.5 text-[9px] text-gray-500">
+          <span className="w-5 h-[2px] rounded bg-purple-500/50 inline-block" />
+          <span>trade</span>
+          <span className="w-5 h-[2px] rounded bg-yellow-500/50 inline-block ml-2" />
+          <span>alliance</span>
+        </div>
+      </div>
+
+      <div className="flex justify-center relative">
         <canvas
           ref={canvasRef}
           onClick={handleClick}
+          onMouseMove={handleMove}
+          onMouseLeave={() => setHovered(null)}
           className="cursor-pointer rounded-xl"
-          style={{ background: 'rgba(10, 14, 39, 0.5)' }}
+          style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(15,21,53,0.9) 0%, rgba(7,11,26,0.95) 100%)' }}
         />
+
+        {/* Tooltip */}
+        {hovState && hovState.alive && centroids[hovered] && (
+          <div
+            className="absolute pointer-events-none px-3 py-2 rounded-lg bg-[#0d1127]/95 border border-white/10 shadow-xl backdrop-blur-sm z-10"
+            style={{
+              left: Math.min(centroids[hovered][0] + 30, CANVAS_W - 140),
+              top: Math.max(centroids[hovered][1] - 40, 10),
+              minWidth: 145,
+            }}
+          >
+            <div className="text-xs font-bold text-white mb-0.5">{hovState.name}</div>
+            <div className="text-[10px] text-gray-400 mb-1.5">{hovState.title}</div>
+            <div className="space-y-1">
+              {['water', 'food', 'energy', 'land'].map(k => (
+                <div key={k} className="flex items-center gap-1.5">
+                  <span className="text-[9px] text-gray-500 w-10 capitalize">{k}</span>
+                  <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${hovState.resources[k]}%`,
+                        backgroundColor: hovState.resources[k] < 20 ? '#ff1744' : RESOURCE_COLORS[k],
+                      }}
+                    />
+                  </div>
+                  <span className="text-[9px] font-mono text-gray-400 w-5 text-right">{Math.round(hovState.resources[k])}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between mt-1.5 pt-1.5 border-t border-white/5 text-[9px] text-gray-500">
+              <span>👥 {hovState.population}</span>
+              <span>😊 {hovState.happiness}%</span>
+              <span>💰 {hovState.gdp}</span>
+            </div>
+          </div>
+        )}
       </div>
+
       <div className="flex justify-center gap-4 mt-3 text-[10px] text-gray-500 uppercase tracking-wider">
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span> Healthy</span>
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span> At Risk</span>
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block"></span> Critical</span>
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> Danger</span>
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-gray-600 inline-block"></span> Collapsed</span>
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /> Healthy</span>
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" /> At Risk</span>
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block" /> Critical</span>
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" /> Danger</span>
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-gray-600 inline-block" /> Dead</span>
       </div>
     </div>
   );

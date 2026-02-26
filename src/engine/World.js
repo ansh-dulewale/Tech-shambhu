@@ -10,11 +10,11 @@ import TradeSystem from './TradeSystem.js';
 
 // Action effects: what each action does to resources
 const ACTION_EFFECTS = {
-  HARVEST:  { water: 8, food: 12, energy: 5, land: -8 },
+  HARVEST: { water: 8, food: 12, energy: 5, land: -8 },
   CONSERVE: { multiplier: 0.5 }, // halves depletion
-  TRADE:    {}, // handled by TradeSystem
-  EXPAND:   { populationBonus: 0.10, resourceDrain: 0.10 },
-  DEFEND:   { floor: true }, // resources can't drop below current level
+  TRADE: {}, // handled by TradeSystem
+  EXPAND: { populationBonus: 0.10, resourceDrain: 0.10 },
+  DEFEND: { floor: true }, // resources can't drop below current level
   INNOVATE: { energy: -10, efficiencyBonus: 0.05 },
 };
 
@@ -70,7 +70,7 @@ class World {
   tick() {
     this.cycle++;
     const aliveIds = Object.keys(this.states).filter(id => this.states[id].alive);
-    
+
     if (aliveIds.length === 0) {
       return this._buildResult(null, [], []);
     }
@@ -95,16 +95,16 @@ class World {
       const popFactor = s.population / 1000;
       const innovBonus = 1 - this.innovationBonus[id];
 
-      s.resources.water  -= (5 + popFactor * 3) * innovBonus;
-      s.resources.food   -= (4 + popFactor * 2.5) * innovBonus;
+      s.resources.water -= (5 + popFactor * 3) * innovBonus;
+      s.resources.food -= (4 + popFactor * 2.5) * innovBonus;
       s.resources.energy -= (3 + popFactor * 2) * innovBonus;
-      s.resources.land   -= (0.5 + popFactor * 0.3) * innovBonus;
+      s.resources.land -= (0.5 + popFactor * 0.3) * innovBonus;
 
       // Natural regeneration
-      s.resources.water  += 2;
-      s.resources.food   += 1.5;
+      s.resources.water += 2;
+      s.resources.food += 1.5;
       s.resources.energy += 1;
-      s.resources.land   += 0.3;
+      s.resources.land += 0.3;
 
       // Clamp
       this._clampResources(id);
@@ -149,19 +149,19 @@ class World {
       // Apply DEFEND floors (resources can't go below what they were)
       if (defendingStates.has(id) && defendFloors[id]) {
         const floors = defendFloors[id];
-        s.resources.water  = Math.max(s.resources.water, floors.water);
-        s.resources.food   = Math.max(s.resources.food, floors.food);
+        s.resources.water = Math.max(s.resources.water, floors.water);
+        s.resources.food = Math.max(s.resources.food, floors.food);
         s.resources.energy = Math.max(s.resources.energy, floors.energy);
-        s.resources.land   = Math.max(s.resources.land, floors.land);
+        s.resources.land = Math.max(s.resources.land, floors.land);
       }
 
       // Apply CONSERVE (restore half of what was consumed)
       if (conservingStates.has(id)) {
         const popFactor = s.population / 1000;
-        s.resources.water  += (5 + popFactor * 3) * 0.5;
-        s.resources.food   += (4 + popFactor * 2.5) * 0.5;
+        s.resources.water += (5 + popFactor * 3) * 0.5;
+        s.resources.food += (4 + popFactor * 2.5) * 0.5;
         s.resources.energy += (3 + popFactor * 2) * 0.5;
-        s.resources.land   += (0.5 + popFactor * 0.3) * 0.5;
+        s.resources.land += (0.5 + popFactor * 0.3) * 0.5;
       }
 
       this._clampResources(id);
@@ -189,7 +189,7 @@ class World {
       // STEP 6: COLLAPSE CHECK
       const zeroResources = Object.values(s.resources).filter(v => v <= 0).length;
       if ((zeroResources >= 2 && s.population < 150) ||
-          (zeroResources >= 1 && s.population < 80)) {
+        (zeroResources >= 1 && s.population < 80)) {
         s.alive = false;
         const lowestRes = Object.entries(s.resources).sort((a, b) => a[1] - b[1])[0];
         s.collapseReason = `${lowestRes[0]} depleted (${Math.round(lowestRes[1])})`;
@@ -237,10 +237,10 @@ class World {
 
     switch (action) {
       case 'HARVEST':
-        s.resources.water  += ACTION_EFFECTS.HARVEST.water;
-        s.resources.food   += ACTION_EFFECTS.HARVEST.food;
+        s.resources.water += ACTION_EFFECTS.HARVEST.water;
+        s.resources.food += ACTION_EFFECTS.HARVEST.food;
         s.resources.energy += ACTION_EFFECTS.HARVEST.energy;
-        s.resources.land   += ACTION_EFFECTS.HARVEST.land;
+        s.resources.land += ACTION_EFFECTS.HARVEST.land;
         break;
 
       case 'CONSERVE':
@@ -253,10 +253,10 @@ class World {
 
       case 'EXPAND':
         s.population += Math.round(s.population * 0.10);
-        s.resources.water  -= s.resources.water * 0.10;
-        s.resources.food   -= s.resources.food * 0.10;
+        s.resources.water -= s.resources.water * 0.10;
+        s.resources.food -= s.resources.food * 0.10;
         s.resources.energy -= s.resources.energy * 0.10;
-        s.resources.land   -= s.resources.land * 0.10;
+        s.resources.land -= s.resources.land * 0.10;
         break;
 
       case 'DEFEND':
@@ -396,10 +396,10 @@ class World {
 
   _clampResources(id) {
     const r = this.states[id].resources;
-    r.water  = Math.max(0, Math.min(100, r.water));
-    r.food   = Math.max(0, Math.min(100, r.food));
+    r.water = Math.max(0, Math.min(100, r.water));
+    r.food = Math.max(0, Math.min(100, r.food));
     r.energy = Math.max(0, Math.min(100, r.energy));
-    r.land   = Math.max(0, Math.min(100, r.land));
+    r.land = Math.max(0, Math.min(100, r.land));
   }
 
   _buildResult(event, trades, alliances, collapsed = []) {

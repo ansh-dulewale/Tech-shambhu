@@ -236,7 +236,7 @@ function App() {
         </div>
 
         {/* Right Column: Features */}
-        <div className="col-span-4 space-y-4">
+        <div className="col-span-4 space-y-4 max-h-[calc(100vh-100px)] overflow-y-auto">
           <GodMode
             states={states}
             onTriggerEvent={(sId, type) => world.triggerEvent(sId, type)}
