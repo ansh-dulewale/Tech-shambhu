@@ -1,4 +1,4 @@
-// Arpit's files go here:
+// Ansh's files go here:
 // - GodMode.jsx (Manual intervention controls)
 // - WhatIfPanel.jsx (Scenario buttons)
 // - ComparisonView.jsx (AI vs Random split screen)

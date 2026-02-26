@@ -33,13 +33,13 @@ src/
 │   ├── EventLog.jsx               — Scrolling news timeline
 │   ├── StateDetail.jsx            — Popup when clicking a state
 │   └── TradeNetwork.jsx           — Trade lines visualization
-├── features/                      👤 ARPIT
+├── features/                      👤 ANSH
 │   ├── GodMode.jsx                — Manual intervention controls
 │   ├── WhatIfPanel.jsx            — Scenario buttons
 │   ├── ComparisonView.jsx         — AI vs Random split screen
 │   ├── AnalysisPanel.jsx          — Strategy + collapse analysis
 │   └── StoryPanel.jsx             — Auto-generated narrative
-├── App.jsx                        👤 ARPIT (integration)
+├── App.jsx                        👤 ANSH (integration)
 ├── App.css                        👤 GUNJAN
 ├── index.css                      ✅ DONE — Tailwind + theme
 └── main.jsx                       ✅ DONE
@@ -55,7 +55,7 @@ src/
 
 ### Your Job
 
-Build the simulation engine — the AI brain, world logic, and trade system. Your code runs the entire simulation. Gunjan and Arpit will use YOUR functions to display and analyze data.
+Build the simulation engine — the AI brain, world logic, and trade system. Your code runs the entire simulation. Gunjan and Ansh will use YOUR functions to display and analyze data.
 
 ### Files to Create
 
@@ -697,7 +697,7 @@ export default TradeNetwork;
 
 ---
 
-## 👤 ARPIT — Connector + Features Person
+## 👤 ANSH — Connector + Features Person
 
 ### Your Job
 
@@ -910,7 +910,7 @@ export default ComparisonView;
 
 ### 📄 `src/App.jsx` — THE INTEGRATION FILE
 
-**What it does**: Connects Swayam's engine to Gunjan's components + Arpit's features.
+**What it does**: Connects Swayam's engine to Gunjan's components + Ansh's features.
 
 ```jsx
 // src/App.jsx
@@ -926,7 +926,7 @@ import EventLog from "./components/EventLog";
 import StateDetail from "./components/StateDetail";
 import TradeNetwork from "./components/TradeNetwork";
 
-// Arpit's features
+// Ansh's features
 import GodMode from "./features/GodMode";
 import WhatIfPanel from "./features/WhatIfPanel";
 import AnalysisPanel from "./features/AnalysisPanel";
@@ -1056,7 +1056,7 @@ function App() {
 export default App;
 ```
 
-### ✅ Arpit's Checklist
+### ✅ Ansh's Checklist
 
 - [ ] `GodMode.jsx` — 4 intervention buttons with dropdowns
 - [ ] `WhatIfPanel.jsx` — 5 scenario buttons + comparison display
@@ -1074,14 +1074,14 @@ export default App;
 ```
 Swayam → engine/Agent.js, engine/World.js, engine/TradeSystem.js
 Gunjan → components/Header.jsx, IndiaMap.jsx, ResourceDashboard.jsx, etc.
-Arpit  → features/GodMode.jsx, WhatIfPanel.jsx, AnalysisPanel.jsx, etc.
+Ansh  → features/GodMode.jsx, WhatIfPanel.jsx, AnalysisPanel.jsx, etc.
 ```
 
 ## Step 2: Integration (30 min)
 
 ```
-1. Arpit pulls Swayam's and Gunjan's code
-2. Arpit updates App.jsx imports to connect engine → components
+1. Ansh pulls Swayam's and Gunjan's code
+2. Ansh updates App.jsx imports to connect engine → components
 3. Quick test: npm run dev → verify map shows, simulation runs
 ```
 
@@ -1096,7 +1096,7 @@ Everyone together:
 
 ## Data Format Contract (CRITICAL — Everyone Must Follow)
 
-### State Object (Swayam outputs this, Gunjan + Arpit consume it):
+### State Object (Swayam outputs this, Gunjan + Ansh consume it):
 
 ```javascript
 {
