@@ -108,9 +108,9 @@ function TrendCharts({ history = [] }) {
 
   if (history.length < 2) {
     return (
-      <div className="glass-card p-4">
-        <h2 className="text-sm font-semibold text-white uppercase tracking-wider mb-3">Trends</h2>
-        <div className="text-center text-xs text-gray-600 py-8">
+      <div>
+        <div className="text-center text-xs text-gray-600 py-10">
+          <div className="text-2xl mb-2 opacity-40">📈</div>
           Run the simulation to see trend data.
         </div>
       </div>
@@ -118,17 +118,20 @@ function TrendCharts({ history = [] }) {
   }
 
   return (
-    <div className="glass-card p-4">
-      <h2 className="text-sm font-semibold text-white uppercase tracking-wider mb-3">Trends</h2>
+    <div>
       <div className="space-y-4">
         <div>
-          <h3 className="text-[10px] text-gray-500 mb-1 uppercase tracking-widest">Population</h3>
+          <h3 className="text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-violet-400/60" /> Population
+          </h3>
           <div className="h-36">
             {populationData && <Line data={populationData} options={chartOptions} />}
           </div>
         </div>
         <div>
-          <h3 className="text-[10px] text-gray-500 mb-1 uppercase tracking-widest">Happiness</h3>
+          <h3 className="text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400/60" /> Happiness
+          </h3>
           <div className="h-36">
             {happinessData && <Line data={happinessData} options={{ ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, max: 100 } } }} />}
           </div>

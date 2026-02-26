@@ -168,9 +168,9 @@ function StoryPanel({ history, collapsedStates }) {
 
     if (story.length === 0) {
         return (
-            <div className="glass-card p-4">
-                <h2 className="text-lg font-semibold mb-3 text-amber-400 flex items-center gap-2">
-                    <span className="animate-glow">📖</span> Story
+            <div className="glass-card-glow p-5">
+                <h2 className="text-lg font-bold mb-3 text-amber-400 flex items-center gap-2.5 font-display">
+                    <span className="animate-glow text-xl">📖</span> Story
                 </h2>
                 <p className="text-xs text-gray-500 italic">
                     The story will unfold as the simulation progresses...
@@ -180,26 +180,26 @@ function StoryPanel({ history, collapsedStates }) {
     }
 
     return (
-        <div className="glass-card p-4">
-            <h2 className="text-lg font-semibold mb-3 text-amber-400 flex items-center gap-2">
-                <span className="animate-glow">📖</span> Story
+        <div className="glass-card-glow p-5">
+            <h2 className="text-lg font-bold mb-4 text-amber-400 flex items-center gap-2.5 font-display">
+                <span className="animate-glow text-xl">📖</span> Story
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-5">
                 {story.map((chapter, idx) => (
-                    <div key={idx} className="relative">
+                    <div key={idx} className="relative animate-slide-up" style={{ animationDelay: `${idx * 0.1}s` }}>
                         {/* Timeline connector */}
                         {idx < story.length - 1 && (
-                            <div className="absolute left-3 top-8 bottom-0 w-px bg-amber-400/20" />
+                            <div className="absolute left-3.5 top-9 bottom-0 w-px bg-gradient-to-b from-amber-400/25 to-transparent" />
                         )}
-                        <div className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-amber-400/20 border border-amber-400/40
-                            flex items-center justify-center text-xs text-amber-300 mt-0.5 shrink-0">
+                        <div className="flex items-start gap-3.5">
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400/25 to-amber-500/10 border border-amber-400/40
+                            flex items-center justify-center text-xs text-amber-300 font-bold mt-0.5 shrink-0 shadow-sm shadow-amber-400/10">
                                 {idx + 1}
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-sm font-semibold text-amber-300">{chapter.title}</h3>
-                                <span className="text-xs text-gray-500">{chapter.subtitle}</span>
-                                <p className="text-xs text-gray-300 mt-1.5 leading-relaxed">
+                                <h3 className="text-sm font-bold text-amber-300 font-display">{chapter.title}</h3>
+                                <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">{chapter.subtitle}</span>
+                                <p className="text-xs text-gray-300 mt-2 leading-relaxed">
                                     {chapter.text}
                                 </p>
                             </div>

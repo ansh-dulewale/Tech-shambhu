@@ -20,14 +20,11 @@ function TradeNetwork({ trades = [], alliances = [] }) {
   );
 
   return (
-    <div className="glass-card p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-white uppercase tracking-wider">Trade Network</h2>
-      </div>
-
+    <div>
       {trades.length === 0 && alliances.length === 0 && (
-        <div className="text-center text-xs text-gray-600 py-4">
-          No active trades yet.
+        <div className="text-center text-xs text-gray-600 py-8">
+          <div className="text-2xl mb-2 opacity-40">🤝</div>
+          No active trades yet. Start the simulation.
         </div>
       )}
 
@@ -39,9 +36,9 @@ function TradeNetwork({ trades = [], alliances = [] }) {
           return (
             <div
               key={idx}
-              className={`p-2 rounded-lg transition-all duration-300 ${isAlliance
-                  ? 'bg-amber-500/8 border border-amber-500/15'
-                  : 'bg-white/[0.02] border border-white/5'
+              className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-[1.01] card-entrance ${isAlliance
+                  ? 'bg-gradient-to-r from-amber-500/8 to-amber-500/5 border border-amber-500/20'
+                  : 'bg-white/[0.02] border border-white/5 hover:border-white/10'
                 }`}
             >
               <div className="flex items-center gap-2">
@@ -90,20 +87,22 @@ function TradeNetwork({ trades = [], alliances = [] }) {
       </div>
 
       {(trades.length > 0 || alliances.length > 0) && (
-        <div className="flex justify-around mt-3 pt-3 border-t border-white/5 text-center">
-          <div>
-            <div className="text-sm font-semibold text-white tabular-nums">{trades.length}</div>
-            <div className="text-[11px] text-gray-500 uppercase tracking-wider">Trades</div>
+        <div className="flex justify-around mt-4 pt-3 border-t border-white/5 text-center">
+          <div className="group">
+            <div className="text-base font-bold text-white tabular-nums font-mono">{trades.length}</div>
+            <div className="text-[10px] text-gray-500 uppercase tracking-wider group-hover:text-gray-400 transition-colors">Trades</div>
           </div>
-          <div>
-            <div className="text-sm font-semibold text-amber-400 tabular-nums">{alliances.length}</div>
-            <div className="text-[11px] text-gray-500 uppercase tracking-wider">Alliances</div>
+          <div className="w-px h-8 bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+          <div className="group">
+            <div className="text-base font-bold text-amber-400 tabular-nums font-mono">{alliances.length}</div>
+            <div className="text-[10px] text-gray-500 uppercase tracking-wider group-hover:text-gray-400 transition-colors">Alliances</div>
           </div>
-          <div>
-            <div className="text-sm font-semibold text-purple-400 tabular-nums">
+          <div className="w-px h-8 bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+          <div className="group">
+            <div className="text-base font-bold text-purple-400 tabular-nums font-mono">
               {trades.length > 0 ? Math.round(trades.reduce((sum, t) => sum + (t.trust || 0), 0) / trades.length * 10) / 10 : 0}
             </div>
-            <div className="text-[11px] text-gray-500 uppercase tracking-wider">Avg Trust</div>
+            <div className="text-[10px] text-gray-500 uppercase tracking-wider group-hover:text-gray-400 transition-colors">Avg Trust</div>
           </div>
         </div>
       )}

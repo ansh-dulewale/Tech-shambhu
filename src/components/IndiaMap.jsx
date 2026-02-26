@@ -4,16 +4,16 @@ const CANVAS_W = 420;
 const CANVAS_H = 560;
 
 const RESOURCE_COLORS = {
-  water: '#00d4ff', food: '#00e676', energy: '#ffab00', land: '#8d6e63',
+  water: '#67e8f9', food: '#6ee7b7', energy: '#fcd34d', land: '#c4b5fd',
 };
 
 function getHealthColor(state) {
-  if (!state.alive) return '#424242';
+  if (!state.alive) return '#334155';
   const avg = (state.resources.water + state.resources.food + state.resources.energy + state.resources.land) / 4;
-  if (avg > 60) return '#00c853';
-  if (avg > 40) return '#ffab00';
-  if (avg > 20) return '#ff6d00';
-  return '#ff1744';
+  if (avg > 60) return '#10b981';
+  if (avg > 40) return '#f59e0b';
+  if (avg > 20) return '#f97316';
+  return '#f43f5e';
 }
 
 // ─── Geo projection (manual Mercator fit to canvas) ─────────────────
@@ -125,7 +125,7 @@ class Particle {
   draw(ctx) {
     const a = (this.life / this.maxLife) * 0.12;
     ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(124,77,255,${a})`; ctx.fill();
+    ctx.fillStyle = `rgba(167,139,250,${a})`; ctx.fill();
   }
 }
 
@@ -238,7 +238,7 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
         ctx.beginPath();
         ctx.moveTo(c1[0], c1[1]);
         ctx.quadraticCurveTo((c1[0] + c2[0]) / 2, (c1[1] + c2[1]) / 2 - 20, c2[0], c2[1]);
-        ctx.strokeStyle = 'rgba(124,77,255,0.35)';
+        ctx.strokeStyle = 'rgba(167,139,250,0.35)';
         ctx.lineWidth = Math.max(1, (tr.trust || 1) / 3);
         ctx.setLineDash([5, 5]);
         ctx.lineDashOffset = -(t * 0.5);
@@ -316,7 +316,7 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
 
         // Action label
         if (state.alive && state.action) {
-          ctx.fillStyle = 'rgba(186,146,255,0.85)';
+          ctx.fillStyle = 'rgba(196,181,253,0.85)';
           ctx.font = '600 6px Inter, system-ui';
           ctx.fillText(state.action, lx, ly + 3);
         }
@@ -397,57 +397,59 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
   const hovState = hovered ? states.find(s => s.id === hovered) : null;
 
   return (
-    <div className="glass-card p-4">
+    <div className="glass-card-glow p-5 h-full flex flex-col">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-white uppercase tracking-wider">Map</h2>
-        <div className="flex items-center gap-1.5 text-[9px] text-gray-500">
-          <span className="w-5 h-[2px] rounded bg-purple-500/50 inline-block" />
-          <span>trade</span>
-          <span className="w-5 h-[2px] rounded bg-yellow-500/50 inline-block ml-2" />
-          <span>alliance</span>
+        <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 font-display">
+          <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-violet-400 to-fuchsia-400 inline-block" />
+          Map
+        </h2>
+        <div className="flex items-center gap-2 text-[9px] text-gray-500">
+          <span className="flex items-center gap-1"><span className="w-5 h-[2px] rounded bg-gradient-to-r from-purple-500/80 to-purple-400/30 inline-block" /> trade</span>
+          <span className="flex items-center gap-1"><span className="w-5 h-[2px] rounded bg-gradient-to-r from-yellow-500/80 to-yellow-400/30 inline-block" /> alliance</span>
         </div>
       </div>
 
-      <div className="flex justify-center relative">
+      <div className="flex justify-center relative flex-1 min-h-0">
         <canvas
           ref={canvasRef}
           onClick={handleClick}
           onMouseMove={handleMove}
           onMouseLeave={() => setHovered(null)}
-          className="cursor-pointer rounded-xl"
-          style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(15,21,53,0.9) 0%, rgba(7,11,26,0.95) 100%)' }}
+          className="cursor-pointer rounded-2xl"
+          style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(18,14,30,0.95) 0%, rgba(8,7,14,0.98) 100%)' }}
         />
 
         {/* Tooltip */}
         {hovState && hovState.alive && centroids[hovered] && (
           <div
-            className="absolute pointer-events-none px-3 py-2 rounded-lg bg-[#0d1127]/95 border border-white/10 shadow-xl backdrop-blur-sm z-10"
+            className="absolute pointer-events-none px-3.5 py-2.5 rounded-xl bg-[#110f1d]/95 border border-violet-500/15 shadow-2xl backdrop-blur-md z-10 animate-scale-in"
             style={{
               left: Math.min(centroids[hovered][0] + 30, CANVAS_W - 140),
               top: Math.max(centroids[hovered][1] - 40, 10),
-              minWidth: 145,
+              minWidth: 155,
             }}
           >
             <div className="text-xs font-bold text-white mb-0.5">{hovState.name}</div>
-            <div className="text-[10px] text-gray-400 mb-1.5">{hovState.title}</div>
-            <div className="space-y-1">
+            <div className="text-[10px] text-violet-300/60 mb-2">{hovState.title}</div>
+            <div className="space-y-1.5">
               {['water', 'food', 'energy', 'land'].map(k => (
                 <div key={k} className="flex items-center gap-1.5">
                   <span className="text-[9px] text-gray-500 w-10 capitalize">{k}</span>
-                  <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                  <div className="flex-1 h-[5px] rounded-full bg-white/5 overflow-hidden">
                     <div
-                      className="h-full rounded-full"
+                      className="h-full rounded-full transition-all"
                       style={{
                         width: `${hovState.resources[k]}%`,
                         backgroundColor: hovState.resources[k] < 20 ? '#ff1744' : RESOURCE_COLORS[k],
+                        boxShadow: `0 0 6px ${hovState.resources[k] < 20 ? 'rgba(255,23,68,0.4)' : RESOURCE_COLORS[k] + '40'}`,
                       }}
                     />
                   </div>
-                  <span className="text-[9px] font-mono text-gray-400 w-5 text-right">{Math.round(hovState.resources[k])}</span>
+                  <span className="text-[9px] font-mono text-gray-400 w-5 text-right tabular-nums">{Math.round(hovState.resources[k])}</span>
                 </div>
               ))}
             </div>
-            <div className="flex justify-between mt-1.5 pt-1.5 border-t border-white/5 text-[9px] text-gray-500">
+            <div className="flex justify-between mt-2 pt-2 border-t border-white/5 text-[9px] text-gray-500">
               <span>👥 {hovState.population}</span>
               <span>😊 {hovState.happiness}%</span>
               <span>💰 {hovState.gdp}</span>
@@ -456,12 +458,12 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
         )}
       </div>
 
-      <div className="flex justify-center gap-4 mt-3 text-[10px] text-gray-500 uppercase tracking-wider">
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /> Healthy</span>
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" /> At Risk</span>
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block" /> Critical</span>
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" /> Danger</span>
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-gray-600 inline-block" /> Dead</span>
+      <div className="flex justify-center gap-4 mt-3 pt-3 border-t border-white/[0.04] text-[10px] text-gray-500 uppercase tracking-wider">
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block shadow-sm shadow-emerald-500/40" /> Healthy</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block shadow-sm shadow-amber-500/40" /> At Risk</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-orange-500 inline-block shadow-sm shadow-orange-500/40" /> Critical</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500 inline-block shadow-sm shadow-red-500/40" /> Danger</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-gray-600 inline-block" /> Dead</span>
       </div>
     </div>
   );
