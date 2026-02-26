@@ -218,7 +218,7 @@ function App() {
 
       <div className="grid grid-cols-12 gap-4">
         {/* Left Column: Map + Event Log */}
-        <div className="col-span-5 space-y-4">
+        <div className="col-span-4 space-y-4">
           <IndiaMap
             states={states}
             trades={trades}
@@ -236,7 +236,7 @@ function App() {
         </div>
 
         {/* Right Column: Features */}
-        <div className="col-span-3 space-y-4">
+        <div className="col-span-4 space-y-4">
           <GodMode
             states={states}
             onTriggerEvent={(sId, type) => world.triggerEvent(sId, type)}

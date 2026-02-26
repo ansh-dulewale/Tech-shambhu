@@ -42,14 +42,14 @@ class TradeSystem {
       const r = state.resources;
       const resources = ['water', 'food', 'energy', 'land'];
 
-      // Surplus: highest resource above 50
-      let surplus = null, surplusVal = 50;
+      // Surplus: highest resource above 40
+      let surplus = null, surplusVal = 40;
       for (const res of resources) {
         if (r[res] > surplusVal) { surplus = res; surplusVal = r[res]; }
       }
 
-      // Need: lowest resource below 40
-      let need = null, needVal = 40;
+      // Need: lowest resource below 50
+      let need = null, needVal = 50;
       for (const res of resources) {
         if (r[res] < needVal) { need = res; needVal = r[res]; }
       }
