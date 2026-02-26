@@ -469,6 +469,39 @@ class World {
     }));
   }
 
+  /**
+   * Get Q-value explanation for all alive agents.
+   * Returns array of { id, name, stateCode, qValues, chosenAction, explorationRate, totalReward, statesVisited }
+   */
+  getAgentExplanations() {
+    return Object.keys(this.states)
+      .filter(id => this.states[id].alive)
+      .map(id => {
+        const s = this.states[id];
+        const agent = this.agents[id];
+        const hasPartners = this.tradeSystem.tradeHistory.some(t => t.from === id || t.to === id);
+        const recentEvent = false; // simplified; could track from last event
+        const stateCode = agent.encodeState(s.resources, hasPartners, recentEvent);
+
+        // Get Q-values for the current state
+        const qValues = {};
+        ACTIONS.forEach(a => {
+          qValues[a] = agent.qTable[stateCode]?.[a] ?? 0;
+        });
+
+        return {
+          id: s.id,
+          name: s.name,
+          stateCode,
+          qValues,
+          chosenAction: s.action,
+          explorationRate: agent.explorationRate,
+          totalReward: agent.totalReward,
+          statesVisited: agent.getStateSpaceSize(),
+        };
+      });
+  }
+
   reset(statesData) {
     const data = statesData || this.originalData;
     this.cycle = 0;

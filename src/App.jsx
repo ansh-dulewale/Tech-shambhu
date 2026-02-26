@@ -18,6 +18,7 @@ import WhatIfPanel from "./features/WhatIfPanel";
 import AnalysisPanel from "./features/AnalysisPanel";
 import StoryPanel from "./features/StoryPanel";
 import ComparisonView from "./features/ComparisonView";
+import ExplainabilityPanel from "./features/ExplainabilityPanel";
 
 // Engine
 import World from "./engine/World";
@@ -55,10 +56,11 @@ function App() {
   const [selectedState, setSelectedState] = useState(null);
   const [scenarioResult, setScenarioResult] = useState(null);
   const [comparisonData, setComparisonData] = useState({ ai: null, random: null });
+  const [agentExplanations, setAgentExplanations] = useState([]);
   const intervalRef = useRef(null);
 
   // ─── Tab state ──────────────────────────────────────────────────
-  const [rightTab, setRightTab] = useState('resources');  // resources | godmode | scenarios
+  const [rightTab, setRightTab] = useState('resources');  // resources | godmode | scenarios | explain
   const [bottomTab, setBottomTab] = useState('events');   // events | trends | trade | analysis
 
   // ─── Simulation logic (unchanged) ───────────────────────────────
@@ -73,6 +75,7 @@ function App() {
     });
     setAlliances(result.alliances);
     setHistory((prev) => [...prev, result]);
+    setAgentExplanations(world.getAgentExplanations());
   }, [world]);
 
   useEffect(() => {
@@ -96,6 +99,7 @@ function App() {
     setAlliances([]);
     setScenarioResult(null);
     setSelectedState(null);
+    setAgentExplanations([]);
     setStates(world.getState());
   }, [world]);
 
@@ -217,6 +221,7 @@ function App() {
               <TabBtn active={rightTab === 'godmode'} label="God Mode" onClick={() => setRightTab('godmode')} />
               <TabBtn active={rightTab === 'scenarios'} label="Scenarios" onClick={() => setRightTab('scenarios')} />
               <TabBtn active={rightTab === 'compare'} label="AI Battle" onClick={() => setRightTab('compare')} />
+              <TabBtn active={rightTab === 'explain'} label="Why?" onClick={() => setRightTab('explain')} />
               <div className="flex-1" />
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/[0.03]">
                 <span className={`w-2 h-2 rounded-full ${states.filter(s => s.alive !== false).length >= 6 ? 'bg-emerald-400' : states.filter(s => s.alive !== false).length >= 4 ? 'bg-amber-400' : 'bg-rose-400'} animate-pulse`} />
@@ -274,6 +279,9 @@ function App() {
                   randomResult={comparisonData.random}
                   onRunComparison={handleRunComparison}
                 />
+              )}
+              {rightTab === 'explain' && (
+                <ExplainabilityPanel agentExplanations={agentExplanations} />
               )}
             </div>
           </div>
