@@ -288,7 +288,7 @@ function App() {
         </div>
 
         {/* ═══ BOTTOM DOCK: Events / Trends / Trade ════════════════ */}
-        <div className="glass-card-glow flex flex-col" style={{ height: '230px', minHeight: '230px' }}>
+        <div className="glass-card-glow flex flex-col" style={{ height: '380px', minHeight: '380px' }}>
           {/* Bottom tab bar */}
           <div className="flex items-center gap-1.5 px-4 pt-3 pb-2 border-b border-white/[0.04]">
             <TabBtn active={bottomTab === 'events'} label="Event Feed" onClick={() => setBottomTab('events')} />

@@ -59,17 +59,17 @@ const chartOptions = {
       position: 'bottom',
       labels: {
         color: '#757575',
-        font: { size: 9, family: 'Inter, system-ui' },
-        boxWidth: 6,
-        padding: 8,
+        font: { size: 10, family: 'Inter, system-ui' },
+        boxWidth: 8,
+        padding: 10,
         usePointStyle: true,
         pointStyleWidth: 6,
       }
     },
     tooltip: {
       backgroundColor: 'rgba(15,15,30,0.95)',
-      titleFont: { family: 'Inter, system-ui', size: 11 },
-      bodyFont: { family: 'Inter, system-ui', size: 10 },
+      titleFont: { family: 'Inter, system-ui', size: 12 },
+      bodyFont: { family: 'Inter, system-ui', size: 11 },
       borderColor: 'rgba(255,255,255,0.08)',
       borderWidth: 1,
       cornerRadius: 6,
@@ -85,11 +85,11 @@ const chartOptions = {
   scales: {
     x: {
       grid: { color: 'rgba(255,255,255,0.02)' },
-      ticks: { color: '#4a4a4a', font: { size: 8 }, maxTicksLimit: 10 },
+      ticks: { color: '#4a4a4a', font: { size: 10 }, maxTicksLimit: 10 },
     },
     y: {
       grid: { color: 'rgba(255,255,255,0.02)' },
-      ticks: { color: '#4a4a4a', font: { size: 9 } },
+      ticks: { color: '#4a4a4a', font: { size: 10 } },
       min: 0,
     }
   },
@@ -144,8 +144,8 @@ function TrendCharts({ history = [] }) {
           return 'rgba(248, 113, 113, 0.9)';
         }),
         borderWidth: 1,
-        borderRadius: 4,
-        barThickness: 10,
+        borderRadius: 6,
+        barThickness: 16,
       }]
     };
   }, [history]);
@@ -292,40 +292,40 @@ function TrendCharts({ history = [] }) {
 
   return (
     <div>
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div>
-          <h3 className="text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
+          <h3 className="text-xs text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-violet-400/60" /> Population
             <span className="text-[8px] text-gray-600 font-normal ml-auto">Area Chart</span>
           </h3>
-          <div className="h-36">
+          <div className="h-56">
             {populationData && <Line data={populationData} options={chartOptions} />}
           </div>
         </div>
         <div>
-          <h3 className="text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
+          <h3 className="text-xs text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400/60" /> Happiness
             <span className="text-[8px] text-gray-600 font-normal ml-auto">Current Snapshot</span>
           </h3>
-          <div className="h-40">
+          <div className="h-60">
             {happinessBarData && <Bar data={happinessBarData} options={happinessBarOptions} />}
           </div>
         </div>
         <div>
-          <h3 className="text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
+          <h3 className="text-xs text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cyan-400/60" /> Avg Resources
             <span className="text-[8px] text-gray-600 font-normal ml-auto">Filled Area</span>
           </h3>
-          <div className="h-36">
+          <div className="h-56">
             {resourceData && <Line data={resourceData} options={{ ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, max: 100 } } }} />}
           </div>
         </div>
         {strategyData && (
           <div>
-            <h3 className="text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
+            <h3 className="text-xs text-gray-500 mb-2 uppercase tracking-widest font-semibold flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-purple-400/60" /> Strategy Evolution
             </h3>
-            <div className="h-44">
+            <div className="h-56">
               <Line data={strategyData} options={stackedOptions} />
             </div>
           </div>
