@@ -10,10 +10,22 @@ class Agent {
     this.actionHistory = [];
     this.totalReward = 0;
     this.forcedAction = null; // God Mode override
+    this._loadQTable(); // Restore from localStorage if available
   }
 
+  /**
+   * 5-level state encoding for richer emergent behavior.
+   * C=Critical(0-15), L=Low(16-30), M=Mid(31-50), H=High(51-75), S=Surplus(76-100)
+   * State space: 5^4 × 2 × 2 = 5000 possible states
+   */
   encodeState(resources, hasPartners, recentEvent) {
-    const level = (val) => val <= 30 ? 'L' : val <= 60 ? 'M' : 'H';
+    const level = (val) => {
+      if (val <= 15) return 'C';
+      if (val <= 30) return 'L';
+      if (val <= 50) return 'M';
+      if (val <= 75) return 'H';
+      return 'S';
+    };
     return `${level(resources.water)}_${level(resources.food)}_${level(resources.energy)}_${level(resources.land)}_${hasPartners ? 'P' : 'N'}_${recentEvent ? 'E' : 'X'}`;
   }
 
@@ -70,12 +82,15 @@ class Agent {
     this.qTable[oldStateCode][action] = newQ;
 
     this.totalReward += reward;
+
+    // Persist Q-table every 10 learning steps
+    if (this.actionHistory.length % 10 === 0) this._saveQTable();
   }
 
   decayExploration(cycle) {
-    if (cycle <= 30) this.explorationRate = 0.3;
-    else if (cycle <= 70) this.explorationRate = 0.15;
-    else this.explorationRate = 0.10;
+    // Continuous decay: starts at 0.3 and asymptotically approaches 0.05
+    // Provides longer, more gradual learning curve
+    this.explorationRate = Math.max(0.05, 0.3 * Math.exp(-0.02 * cycle));
   }
 
   getStrategyBreakdown() {
@@ -107,12 +122,35 @@ class Agent {
     }
   }
 
+  /** Save Q-table to localStorage for persistence across reloads */
+  _saveQTable() {
+    try {
+      const key = `worldsim_qtable_${this.stateId}`;
+      localStorage.setItem(key, JSON.stringify(this.qTable));
+    } catch (e) { /* storage full or unavailable — silent fail */ }
+  }
+
+  /** Load Q-table from localStorage */
+  _loadQTable() {
+    try {
+      const key = `worldsim_qtable_${this.stateId}`;
+      const saved = localStorage.getItem(key);
+      if (saved) this.qTable = JSON.parse(saved);
+    } catch (e) { /* parse error — start fresh */ }
+  }
+
+  /** Get count of unique states visited (richness metric) */
+  getStateSpaceSize() {
+    return Object.keys(this.qTable).length;
+  }
+
   reset() {
     this.qTable = {};
     this.actionHistory = [];
     this.explorationRate = 0.3;
     this.totalReward = 0;
     this.forcedAction = null;
+    this._saveQTable(); // Clear persisted Q-table on reset
   }
 }
 
