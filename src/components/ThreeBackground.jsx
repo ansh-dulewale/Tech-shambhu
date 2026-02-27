@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, Stars } from '@react-three/drei';
 import * as THREE from 'three';
@@ -6,6 +6,7 @@ import * as THREE from 'three';
 // ─── Floating particles that drift slowly ───────────────────────────
 function Particles({ count = 200 }) {
     const mesh = useRef();
+    const elapsed = useRef(0);
     const positions = useMemo(() => {
         const pos = new Float32Array(count * 3);
         for (let i = 0; i < count; i++) {
@@ -22,9 +23,10 @@ function Particles({ count = 200 }) {
         return s;
     }, [count]);
 
-    useFrame((state) => {
+    useFrame((state, delta) => {
         if (!mesh.current) return;
-        const time = state.clock.elapsedTime;
+        elapsed.current += delta;
+        const time = elapsed.current;
         const pos = mesh.current.geometry.attributes.position.array;
         for (let i = 0; i < count; i++) {
             pos[i * 3 + 1] += Math.sin(time * 0.3 + i) * 0.001;
@@ -58,10 +60,12 @@ function Particles({ count = 200 }) {
 // ─── Glowing wireframe shapes that float ────────────────────────────
 function FloatingShape({ position, color, speed = 1, size = 0.4 }) {
     const mesh = useRef();
+    const elapsed = useRef(0);
 
-    useFrame((state) => {
+    useFrame((state, delta) => {
         if (!mesh.current) return;
-        const t = state.clock.elapsedTime * speed;
+        elapsed.current += delta;
+        const t = elapsed.current * speed;
         mesh.current.rotation.x = t * 0.4;
         mesh.current.rotation.z = t * 0.3;
     });
@@ -86,11 +90,13 @@ function FloatingShape({ position, color, speed = 1, size = 0.4 }) {
 // ─── Ambient light ring ─────────────────────────────────────────────
 function GlowRing({ radius = 5, color = '#818cf8' }) {
     const mesh = useRef();
+    const elapsed = useRef(0);
 
-    useFrame((state) => {
+    useFrame((state, delta) => {
         if (!mesh.current) return;
-        mesh.current.rotation.x = Math.PI / 2 + Math.sin(state.clock.elapsedTime * 0.2) * 0.1;
-        mesh.current.rotation.z = state.clock.elapsedTime * 0.05;
+        elapsed.current += delta;
+        mesh.current.rotation.x = Math.PI / 2 + Math.sin(elapsed.current * 0.2) * 0.1;
+        mesh.current.rotation.z = elapsed.current * 0.05;
     });
 
     return (

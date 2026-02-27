@@ -1,8 +1,5 @@
 import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 
-const CANVAS_W = 560;
-const CANVAS_H = 560;
-
 const RESOURCE_COLORS = {
   water: '#67e8f9', food: '#6ee7b7', energy: '#fcd34d', land: '#c4b5fd',
 };
@@ -17,7 +14,7 @@ function getHealthColor(state) {
 }
 
 // ─── Geo projection (manual Mercator fit to canvas) ─────────────────
-function createProjection(features) {
+function createProjection(features, canvasW, canvasH) {
   // Compute bounding box of ALL features
   let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
   function walk(coords) {
@@ -32,17 +29,17 @@ function createProjection(features) {
   }
   features.forEach(f => walk(f.geometry.coordinates));
 
-  const pad = 25;
+  const pad = 40;
   const lonSpan = maxLon - minLon;
   const latSpan = maxLat - minLat;
-  const scaleX = (CANVAS_W - pad * 2) / lonSpan;
-  const scaleY = (CANVAS_H - pad * 2) / latSpan;
+  const scaleX = (canvasW - pad * 2) / lonSpan;
+  const scaleY = (canvasH - pad * 2) / latSpan;
   const scale = Math.min(scaleX, scaleY);
 
   const cx = (minLon + maxLon) / 2;
   const cy = (minLat + maxLat) / 2;
-  const ox = CANVAS_W / 2;
-  const oy = CANVAS_H / 2;
+  const ox = canvasW / 2;
+  const oy = canvasH / 2;
 
   return function project(lon, lat) {
     return [
@@ -84,7 +81,7 @@ function getCentroid(geometry, project) {
     coords.forEach(c => walk(c));
   }
   walk(geometry.coordinates);
-  return n ? [sx / n, sy / n] : [CANVAS_W / 2, CANVAS_H / 2];
+  return n ? [sx / n, sy / n] : [400, 300];
 }
 
 // ─── Point-in-polygon test (ray casting) ────────────────────────────
@@ -113,8 +110,8 @@ function pointInFeature(px, py, feature, project) {
 class Particle {
   constructor() { this.reset(); }
   reset() {
-    this.x = Math.random() * CANVAS_W;
-    this.y = Math.random() * CANVAS_H;
+    this.x = Math.random() * 1200;
+    this.y = Math.random() * 900;
     this.vx = (Math.random() - 0.5) * 0.2;
     this.vy = -0.15 - Math.random() * 0.2;
     this.life = Math.random() * 120 + 60;
@@ -137,6 +134,10 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
   const [hovered, setHovered] = useState(null);
   const hoveredRef = useRef(null);
   const [geoData, setGeoData] = useState(null);
+  const containerRef = useRef(null);
+  const [displayW, setDisplayW] = useState(800);
+  const [displayH, setDisplayH] = useState(600);
+  const canvasDimsRef = useRef({ w: 800, h: 600 });
 
   // ── Zoom & Pan state ──
   const [zoom, setZoom] = useState(1);
@@ -149,6 +150,7 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
 
   useEffect(() => { zoomRef.current = zoom; }, [zoom]);
   useEffect(() => { panRef.current = panOffset; }, [panOffset]);
+  useEffect(() => { canvasDimsRef.current = { w: displayW, h: displayH }; }, [displayW, displayH]);
 
   useEffect(() => { hoveredRef.current = hovered; }, [hovered]);
 
@@ -156,15 +158,17 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
   const screenToCanvas = useCallback((clientX, clientY) => {
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return null;
-    const sx = CANVAS_W / rect.width;
-    const sy = CANVAS_H / rect.height;
+    const cw = canvasDimsRef.current.w;
+    const ch = canvasDimsRef.current.h;
+    const sx = cw / rect.width;
+    const sy = ch / rect.height;
     const screenX = (clientX - rect.left) * sx;
     const screenY = (clientY - rect.top) * sy;
     const z = zoomRef.current;
     const p = panRef.current;
     // Reverse the transform: canvas draws with translate(panX + W/2, panY + H/2) then scale(zoom) then translate(-W/2, -H/2)
-    const cx = (screenX - p.x - CANVAS_W / 2) / z + CANVAS_W / 2;
-    const cy = (screenY - p.y - CANVAS_H / 2) / z + CANVAS_H / 2;
+    const cx = (screenX - p.x - cw / 2) / z + cw / 2;
+    const cy = (screenY - p.y - ch / 2) / z + ch / 2;
     return { x: cx, y: cy };
   }, []);
 
@@ -186,11 +190,24 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
       .catch(err => console.warn('GeoJSON load failed:', err));
   }, []);
 
-  // Build projection once
+  // Responsive canvas sizing
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => {
+      const { width, height } = entries[0].contentRect;
+      setDisplayW(Math.floor(width));
+      setDisplayH(Math.floor(height));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Build projection — recompute when container size changes
   const project = useMemo(() => {
-    if (!geoData) return null;
-    return createProjection(geoData.features);
-  }, [geoData]);
+    if (!geoData || !displayW || !displayH) return null;
+    return createProjection(geoData.features, displayW, displayH);
+  }, [geoData, displayW, displayH]);
 
   // Separate simulation vs background features
   const { simFeatures, bgFeatures, centroids } = useMemo(() => {
@@ -214,28 +231,30 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
     if (!canvas || !project) return;
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
+    const cw = displayW;
+    const ch = displayH;
 
-    canvas.width = CANVAS_W * dpr;
-    canvas.height = CANVAS_H * dpr;
+    canvas.width = cw * dpr;
+    canvas.height = ch * dpr;
     ctx.scale(dpr, dpr);
-    canvas.style.width = CANVAS_W + 'px';
-    canvas.style.height = CANVAS_H + 'px';
 
     const t = animRef.current;
-    ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+    // Solid dark navy background
+    ctx.fillStyle = '#0a0a1e';
+    ctx.fillRect(0, 0, cw, ch);
 
     // Apply zoom & pan transform
     const z = zoomRef.current;
     const p = panRef.current;
     ctx.save();
-    ctx.translate(p.x + CANVAS_W / 2, p.y + CANVAS_H / 2);
+    ctx.translate(p.x + cw / 2, p.y + ch / 2);
     ctx.scale(z, z);
-    ctx.translate(-CANVAS_W / 2, -CANVAS_H / 2);
+    ctx.translate(-cw / 2, -ch / 2);
 
     // ── Grid dots ──
     ctx.fillStyle = 'rgba(255,255,255,0.012)';
-    for (let gx = 0; gx < CANVAS_W; gx += 28) {
-      for (let gy = 0; gy < CANVAS_H; gy += 28) {
+    for (let gx = 0; gx < cw; gx += 28) {
+      for (let gy = 0; gy < ch; gy += 28) {
         ctx.beginPath(); ctx.arc(gx, gy, 0.5, 0, Math.PI * 2); ctx.fill();
       }
     }
@@ -248,8 +267,8 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
       drawGeometry(ctx, f.geometry, project);
       ctx.fillStyle = 'rgba(30,30,60,0.3)';
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-      ctx.lineWidth = 0.5;
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 1;
       ctx.stroke();
     });
 
@@ -310,7 +329,7 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
         ctx.shadowBlur = isHov ? 20 : 10;
       }
       drawGeometry(ctx, feature.geometry, project);
-      const cent = centroids[id] || [CANVAS_W / 2, CANVAS_H / 2];
+      const cent = centroids[id] || [cw / 2, ch / 2];
       const grad = ctx.createRadialGradient(cent[0], cent[1], 0, cent[0], cent[1], 80);
       grad.addColorStop(0, (state.alive ? color : '#333') + (isHov ? '70' : '45'));
       grad.addColorStop(1, (state.alive ? color : '#222') + (isHov ? '30' : '15'));
@@ -318,10 +337,10 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
       ctx.fill();
       ctx.restore();
 
-      // Border
+      // Border — white outline
       drawGeometry(ctx, feature.geometry, project);
-      ctx.strokeStyle = color + (isHov ? 'dd' : '60');
-      ctx.lineWidth = isHov ? 2 : 1;
+      ctx.strokeStyle = isHov ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.5)';
+      ctx.lineWidth = isHov ? 2.5 : 1.5;
       ctx.stroke();
 
       // Hover highlight
@@ -345,26 +364,47 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
 
       // State name — with offsets for overlapping labels
       if (cent) {
-        // Nudge labels for geographically close states
+        // Nudge labels so they don't pile on each other
         const labelOffsets = {
-          kerala: { dx: -25, dy: 15 },
-          tamilnadu: { dx: 25, dy: -10 },
+          punjab:       { dx: 0,   dy: -20 },
+          rajasthan:    { dx: -30, dy: 0 },
+          uttarpradesh: { dx: 20,  dy: -15 },
+          gujarat:      { dx: -35, dy: 10 },
+          jharkhand:    { dx: 35,  dy: -5 },
+          maharashtra:  { dx: -20, dy: 15 },
+          tamilnadu:    { dx: 20,  dy: -15 },
+          kerala:       { dx: -30, dy: 15 },
         };
         const off = labelOffsets[id] || { dx: 0, dy: 0 };
         const lx = cent[0] + off.dx;
         const ly = cent[1] + off.dy;
 
-        ctx.fillStyle = state.alive ? '#fff' : '#666';
-        ctx.font = `${isHov ? 'bold 10px' : '600 8px'} Inter, system-ui`;
+        // Label background pill for readability
+        const labelText = state.name;
+        const fontSize = isHov ? 14 : 12;
+        ctx.font = `bold ${fontSize}px Inter, system-ui`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(state.name, lx, ly - 8);
+        const textW = ctx.measureText(labelText).width;
+        const pillH = fontSize + 6;
+        const pillW = textW + 12;
+        ctx.fillStyle = 'rgba(8,7,14,0.75)';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(lx - pillW / 2, ly - 12 - pillH / 2, pillW, pillH, 4);
+        } else {
+          ctx.rect(lx - pillW / 2, ly - 12 - pillH / 2, pillW, pillH);
+        }
+        ctx.fill();
 
-        // Action label
+        ctx.fillStyle = state.alive ? '#fff' : '#666';
+        ctx.fillText(labelText, lx, ly - 12);
+
+        // Action label (smaller, below name)
         if (state.alive && state.action) {
-          ctx.fillStyle = 'rgba(196,181,253,0.85)';
-          ctx.font = '600 6px Inter, system-ui';
-          ctx.fillText(state.action, lx, ly + 3);
+          ctx.fillStyle = 'rgba(196,181,253,0.8)';
+          ctx.font = '600 10px Inter, system-ui';
+          ctx.fillText(state.action, lx, ly + 2);
         }
 
         // Collapsed marker
@@ -374,18 +414,18 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
           ctx.fillText('✕', lx, ly + 2);
         }
 
-        // Mini resource bars under name
-        if (state.alive) {
-          const barW = 24, barH = 2, barGap = 3;
+        // Mini resource bars — only show on hover to reduce clutter
+        if (state.alive && isHov) {
+          const barW = 36, barH = 3, barGap = 5;
           const barX = lx - barW / 2;
-          const barY = ly + 8;
+          const barY = ly + 10;
           ['water', 'food', 'energy', 'land'].forEach((key, i) => {
             const val = state.resources[key];
             const by = barY + i * barGap;
             ctx.fillStyle = 'rgba(255,255,255,0.06)';
             ctx.fillRect(barX, by, barW, barH);
             ctx.fillStyle = val < 20 ? '#ff1744' : RESOURCE_COLORS[key];
-            ctx.globalAlpha = isHov ? 0.85 : 0.55;
+            ctx.globalAlpha = 0.85;
             ctx.fillRect(barX, by, Math.max(1, (val / 100) * barW), barH);
             ctx.globalAlpha = 1;
           });
@@ -395,14 +435,14 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
 
     // Watermark
     ctx.fillStyle = 'rgba(255,255,255,0.03)';
-    ctx.font = '600 11px Inter, system-ui';
+    ctx.font = '600 14px Inter, system-ui';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
-    ctx.fillText('I N D I A', CANVAS_W / 2, CANVAS_H - 12);
+    ctx.fillText('I N D I A', cw / 2, ch - 12);
 
     ctx.restore(); // undo zoom/pan transform
     animRef.current++;
-  }, [states, trades, alliances, activeEvent, project, simFeatures, bgFeatures, centroids]);
+  }, [states, trades, alliances, activeEvent, project, simFeatures, bgFeatures, centroids, displayW, displayH]);
 
   // Animation loop
   useEffect(() => {
@@ -444,8 +484,8 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
     if (!isPanning.current) return;
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const sx = CANVAS_W / rect.width;
-    const sy = CANVAS_H / rect.height;
+    const sx = canvasDimsRef.current.w / rect.width;
+    const sy = canvasDimsRef.current.h / rect.height;
     const dx = (e.clientX - panStart.current.x) * sx;
     const dy = (e.clientY - panStart.current.y) * sy;
     setPanOffset({
@@ -489,19 +529,19 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
   const hovState = hovered ? states.find(s => s.id === hovered) : null;
 
   return (
-    <div className="glass-card-glow p-5 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 font-display">
+    <div className="glass-card-glow p-3 h-full flex flex-col" style={{ background: '#0a0a1e' }}>
+      <div className="flex items-center justify-between mb-1.5">
+        <h2 className="text-[15px] font-bold text-white uppercase tracking-wider flex items-center gap-2 font-display">
           <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-violet-400 to-fuchsia-400 inline-block" />
           Map
         </h2>
-        <div className="flex items-center gap-2 text-[9px] text-gray-500">
-          <span className="flex items-center gap-1"><span className="w-5 h-[2px] rounded bg-gradient-to-r from-purple-500/80 to-purple-400/30 inline-block" /> trade</span>
-          <span className="flex items-center gap-1"><span className="w-5 h-[2px] rounded bg-gradient-to-r from-yellow-500/80 to-yellow-400/30 inline-block" /> alliance</span>
+        <div className="flex items-center gap-3 text-[11px] text-gray-500">
+          <span className="flex items-center gap-1.5"><span className="w-5 h-[2px] rounded bg-gradient-to-r from-purple-500/80 to-purple-400/30 inline-block" /> trade</span>
+          <span className="flex items-center gap-1.5"><span className="w-5 h-[2px] rounded bg-gradient-to-r from-yellow-500/80 to-yellow-400/30 inline-block" /> alliance</span>
         </div>
       </div>
 
-      <div className="flex justify-center relative flex-1 min-h-0">
+      <div ref={containerRef} className="flex justify-center items-center relative flex-1 min-h-0 overflow-hidden" style={{ background: '#0a0a1e' }}>
         <canvas
           ref={canvasRef}
           onClick={handleClick}
@@ -509,8 +549,8 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
           onMouseMove={handleMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={() => { setHovered(null); isPanning.current = false; }}
-          className={`rounded-2xl ${zoom > 1 ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
-          style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(18,14,30,0.95) 0%, rgba(8,7,14,0.98) 100%)' }}
+          className={`block ${zoom > 1 ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
+          style={{ width: displayW, height: displayH, background: '#0a0a1e' }}
         />
 
         {/* Zoom controls overlay */}
@@ -539,7 +579,7 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
             </button>
           )}
           {zoom > 1 && (
-            <div className="text-[9px] text-center text-white/40 font-mono tabular-nums mt-0.5">
+            <div className="text-[10px] text-center text-white/40 font-mono tabular-nums mt-0.5">
               {Math.round(zoom * 100)}%
             </div>
           )}
@@ -549,23 +589,23 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
         {hovState && hovState.alive && centroids[hovered] && (() => {
           const rawX = centroids[hovered][0];
           const rawY = centroids[hovered][1];
-          const tipX = (rawX - CANVAS_W / 2) * zoom + CANVAS_W / 2 + panOffset.x;
-          const tipY = (rawY - CANVAS_H / 2) * zoom + CANVAS_H / 2 + panOffset.y;
+          const tipX = (rawX - displayW / 2) * zoom + displayW / 2 + panOffset.x;
+          const tipY = (rawY - displayH / 2) * zoom + displayH / 2 + panOffset.y;
           return (
             <div
               className="absolute pointer-events-none px-3.5 py-2.5 rounded-xl bg-[#110f1d]/95 border border-violet-500/15 shadow-2xl backdrop-blur-md z-10 animate-scale-in"
               style={{
-                left: Math.min(tipX + 30, CANVAS_W - 140),
+                left: Math.min(tipX + 30, displayW - 160),
                 top: Math.max(tipY - 40, 10),
                 minWidth: 155,
               }}
             >
-              <div className="text-xs font-bold text-white mb-0.5">{hovState.name}</div>
-              <div className="text-[10px] text-violet-300/60 mb-2">{hovState.title}</div>
+              <div className="text-sm font-bold text-white mb-0.5">{hovState.name}</div>
+              <div className="text-[11px] text-violet-300/60 mb-2">{hovState.title}</div>
               <div className="space-y-1.5">
                 {['water', 'food', 'energy', 'land'].map(k => (
                   <div key={k} className="flex items-center gap-1.5">
-                    <span className="text-[9px] text-gray-500 w-10 capitalize">{k}</span>
+                    <span className="text-[10px] text-gray-500 w-12 capitalize">{k}</span>
                     <div className="flex-1 h-[5px] rounded-full bg-white/5 overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all"
@@ -576,11 +616,11 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
                         }}
                       />
                     </div>
-                    <span className="text-[9px] font-mono text-gray-400 w-5 text-right tabular-nums">{Math.round(hovState.resources[k])}</span>
+                    <span className="text-[10px] font-mono text-gray-400 w-6 text-right tabular-nums">{Math.round(hovState.resources[k])}</span>
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between mt-2 pt-2 border-t border-white/5 text-[9px] text-gray-500">
+              <div className="flex justify-between mt-2 pt-2 border-t border-white/5 text-[10px] text-gray-500">
                 <span>Pop {hovState.population}</span>
                 <span>{hovState.happiness}%</span>
                 <span>GDP {hovState.gdp}</span>
@@ -590,12 +630,12 @@ function IndiaMap({ states = [], trades = [], alliances = [], activeEvent, onSta
         })()}
       </div>
 
-      <div className="flex justify-center gap-4 mt-3 pt-3 border-t border-white/[0.04] text-[10px] text-gray-500 uppercase tracking-wider">
-        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block shadow-sm shadow-emerald-500/40" /> Healthy</span>
-        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block shadow-sm shadow-amber-500/40" /> At Risk</span>
-        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-orange-500 inline-block shadow-sm shadow-orange-500/40" /> Critical</span>
-        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500 inline-block shadow-sm shadow-red-500/40" /> Danger</span>
-        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-gray-600 inline-block" /> Dead</span>
+      <div className="flex justify-center gap-4 mt-1.5 pt-1.5 border-t border-white/[0.04] text-[11px] text-gray-500 uppercase tracking-wider">
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block shadow-sm shadow-emerald-500/40" /> Healthy</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block shadow-sm shadow-amber-500/40" /> At Risk</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block shadow-sm shadow-orange-500/40" /> Critical</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block shadow-sm shadow-red-500/40" /> Danger</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-gray-600 inline-block" /> Dead</span>
       </div>
     </div>
   );

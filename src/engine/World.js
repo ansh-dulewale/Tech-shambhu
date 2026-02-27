@@ -33,6 +33,14 @@ class World {
     this.tradeDisabled = false; // configurable for What-If
     this.innovationBonus = {}; // accumulated per state
 
+    // ═══ Climate Change Progression ═══
+    this.climateStress = 0;          // 0→1 over time, drives worsening conditions
+    this.baseEventRate = 0.30;       // original rate before climate scaling
+    this.climateEvents = [];         // log of climate-driven events
+
+    // ═══ Negotiation state ═══
+    this.lastNegotiations = [];      // proposals from last cycle
+
     this._initFromData(statesData);
   }
 
@@ -85,6 +93,12 @@ class World {
       oldStateCodes[id] = this.agents[id].encodeState(s.resources, hasPartners, false);
     });
 
+    // ═══ CLIMATE CHANGE PROGRESSION ═══
+    // Climate stress grows logarithmically — slow start, accelerating mid-game
+    this.climateStress = Math.min(1, 0.02 * Math.log(1 + this.cycle * 0.15));
+    // Event rate increases with climate stress: 0.30 → up to 0.65
+    this.eventRate = this.baseEventRate + this.climateStress * 0.35;
+
     // STEP 1: CONSUME — resources deplete based on population
     const conservingStates = new Set();
     const defendingStates = new Set();
@@ -95,26 +109,61 @@ class World {
       const popFactor = s.population / 1000;
       const innovBonus = 1 - this.innovationBonus[id];
 
-      s.resources.water -= (5 + popFactor * 3) * innovBonus;
-      s.resources.food -= (4 + popFactor * 2.5) * innovBonus;
-      s.resources.energy -= (3 + popFactor * 2) * innovBonus;
-      s.resources.land -= (0.5 + popFactor * 0.3) * innovBonus;
+      // ═══ RESOURCE CROSS-DEPENDENCIES ═══
+      // Water scarcity hurts food production (irrigation)
+      const waterToFoodPenalty = s.resources.water < 30
+        ? (30 - s.resources.water) / 30 * 3  // up to +3 extra food drain
+        : 0;
+      // Energy scarcity reduces land efficiency (mechanization)
+      const energyToLandPenalty = s.resources.energy < 25
+        ? (25 - s.resources.energy) / 25 * 1.5  // up to +1.5 extra land drain
+        : 0;
+      // Low food = population can't sustain, more energy used foraging
+      const foodToEnergyPenalty = s.resources.food < 20
+        ? (20 - s.resources.food) / 20 * 2  // up to +2 extra energy drain
+        : 0;
+      // Land degradation accelerates water loss (deforestation → runoff)
+      const landToWaterPenalty = s.resources.land < 25
+        ? (25 - s.resources.land) / 25 * 2  // up to +2 extra water drain
+        : 0;
 
-      // Natural regeneration — scales with land (more land = better regen)
-      const landFactor = 0.5 + (s.resources.land / 100) * 1.0; // 0.5x at land=0, 1.5x at land=100
-      s.resources.water += 2 * landFactor;
-      s.resources.food += 1.5 * landFactor;
-      s.resources.energy += 1 * landFactor;
-      s.resources.land += 0.3;
+      // Climate stress increases base consumption
+      const climateDrain = 1 + this.climateStress * 0.4; // up to 40% worse
+
+      s.resources.water -= ((5 + popFactor * 3) * innovBonus + landToWaterPenalty) * climateDrain;
+      s.resources.food -= ((4 + popFactor * 2.5) * innovBonus + waterToFoodPenalty) * climateDrain;
+      s.resources.energy -= ((3 + popFactor * 2) * innovBonus + foodToEnergyPenalty) * climateDrain;
+      s.resources.land -= ((0.5 + popFactor * 0.3) * innovBonus + energyToLandPenalty) * climateDrain;
+
+      // Natural regeneration — scales with land AND cross-dependencies
+      const landFactor = 0.5 + (s.resources.land / 100) * 1.0;
+      // Water helps land regeneration (healthy ecosystems)
+      const waterBoost = s.resources.water > 50 ? 1.2 : s.resources.water > 30 ? 1.0 : 0.7;
+      // Climate reduces regeneration over time
+      const climateRegen = 1 - this.climateStress * 0.3; // regen drops up to 30%
+
+      s.resources.water += 2 * landFactor * climateRegen;
+      s.resources.food += 1.5 * landFactor * waterBoost * climateRegen;
+      s.resources.energy += 1 * landFactor * climateRegen;
+      s.resources.land += 0.3 * waterBoost * climateRegen;
 
       // Clamp
       this._clampResources(id);
     });
 
-    // STEP 2: TRIGGER EVENT — random news event
+    // STEP 2: TRIGGER EVENT — random news event (climate-amplified)
     let event = null;
     if (Math.random() < this.eventRate) {
       event = this._triggerRandomEvent();
+    }
+    // Climate can also trigger a SECOND event at high stress
+    if (this.climateStress > 0.5 && Math.random() < (this.climateStress - 0.5) * 0.4) {
+      const climateEvent = this._triggerClimateEvent(aliveIds);
+      if (climateEvent) {
+        this.climateEvents.push(climateEvent);
+        // If no primary event, use climate event as the main one
+        if (!event) event = climateEvent;
+      }
     }
 
     // STEP 3: AGENTS DECIDE — each AI picks an action
@@ -134,16 +183,27 @@ class World {
       this._applyAction(id, action, conservingStates, defendingStates, defendFloors);
     });
 
-    // STEP 4: RESOLVE TRADES
+    // STEP 4: RESOLVE TRADES (with negotiation)
     let trades = [];
+    this.lastNegotiations = [];
     if (!this.tradeDisabled) {
       const tradingIds = aliveIds.filter(id => this.states[id].action === 'TRADE');
-      trades = this.tradeSystem.matchAndExecute(tradingIds, this.states);
+      // Generate proposals from all alive states (not just those who chose TRADE)
+      const proposals = this.tradeSystem.generateProposals(aliveIds, this.states);
+      // Negotiate: states evaluate incoming proposals and accept/reject/counter
+      const negotiationResult = this.tradeSystem.negotiate(proposals, this.states, tradingIds);
+      this.lastNegotiations = negotiationResult.log;
+      // Execute accepted trades
+      trades = this.tradeSystem.executeNegotiated(negotiationResult.accepted, this.states);
+      // Also do classic matching for direct TRADE-action pairs
+      const classicTrades = this.tradeSystem.matchAndExecute(
+        tradingIds.filter(id => !negotiationResult.matched.has(id)),
+        this.states
+      );
+      trades = [...trades, ...classicTrades];
       this.tradeSystem.tickBlocks();
-      // Decay trust for pairs that didn't trade this cycle
       const tradedPairKeys = trades.map(t => [t.from, t.to].sort().join('_'));
       this.tradeSystem.decayTrust(tradedPairKeys);
-      // Betrayal penalty: trust drops when a partner refuses to trade
       this.tradeSystem.applyBetrayalPenalty(tradingIds, this.states);
     }
 
@@ -324,7 +384,7 @@ class World {
     const balancePenalty = maxRes > 0 ? -1.5 * (1 - minRes / maxRes) : 0;
 
     return resourceReward + criticalPenalty + popReward + happinessReward
-         + tradeReward + innovReward + balancePenalty;
+      + tradeReward + innovReward + balancePenalty;
   }
 
   /**
@@ -420,6 +480,72 @@ class World {
     r.land = Math.max(0, Math.min(100, r.land));
   }
 
+  /**
+   * Climate-driven event — progressive deterioration.
+   * Generates synthetic drought/flood/heatwave events that worsen over time.
+   */
+  _triggerClimateEvent(aliveIds) {
+    if (aliveIds.length === 0) return null;
+    const stateId = aliveIds[Math.floor(Math.random() * aliveIds.length)];
+    const severity = this.climateStress; // 0→1
+
+    const climateEventTypes = [
+      {
+        type: 'drought',
+        headline: (s) => `Prolonged drought hits ${s} — rivers at historic lows`,
+        effects: () => ({
+          water: -Math.round(10 + severity * 20),
+          food: -Math.round(5 + severity * 10),
+          happiness: -Math.round(5 + severity * 10),
+        }),
+      },
+      {
+        type: 'flood',
+        headline: (s) => `Extreme monsoon floods devastate ${s} infrastructure`,
+        effects: () => ({
+          land: -Math.round(8 + severity * 15),
+          energy: -Math.round(5 + severity * 10),
+          population: -Math.round(10 + severity * 30),
+        }),
+      },
+      {
+        type: 'climate',
+        headline: (s) => `Record heatwave in ${s} — crops wither, energy grid strained`,
+        effects: () => ({
+          food: -Math.round(8 + severity * 15),
+          energy: -Math.round(8 + severity * 12),
+          happiness: -Math.round(8 + severity * 10),
+        }),
+      },
+      {
+        type: 'environmental',
+        headline: (s) => `Deforestation & soil erosion accelerate in ${s}`,
+        effects: () => ({
+          land: -Math.round(10 + severity * 15),
+          water: -Math.round(5 + severity * 8),
+        }),
+      },
+    ];
+
+    const chosen = climateEventTypes[Math.floor(Math.random() * climateEventTypes.length)];
+    const stateName = this.states[stateId].name;
+    const effects = chosen.effects();
+
+    this._applyEventEffects(stateId, effects);
+
+    const event = {
+      cycle: this.cycle,
+      headline: `${chosen.headline(stateName)}`,
+      source: `Climate Model (stress: ${Math.round(severity * 100)}%)`,
+      stateId,
+      effects,
+      type: chosen.type,
+      isClimate: true,
+    };
+    this.eventLog.push(event);
+    return event;
+  }
+
   _buildResult(event, trades, alliances, collapsed = []) {
     return {
       cycle: this.cycle,
@@ -444,6 +570,9 @@ class World {
       trades,
       alliances,
       collapsed,
+      // New data for UI
+      climateStress: this.climateStress,
+      negotiations: this.lastNegotiations,
     };
   }
 
@@ -470,8 +599,8 @@ class World {
   }
 
   /**
-   * Get Q-value explanation for all alive agents.
-   * Returns array of { id, name, stateCode, qValues, chosenAction, explorationRate, totalReward, statesVisited }
+   * Get rich explanation data for all alive agents.
+   * Includes resources, reasoning, Q-values, strategy breakdown, and context.
    */
   getAgentExplanations() {
     return Object.keys(this.states)
@@ -480,7 +609,7 @@ class World {
         const s = this.states[id];
         const agent = this.agents[id];
         const hasPartners = this.tradeSystem.tradeHistory.some(t => t.from === id || t.to === id);
-        const recentEvent = false; // simplified; could track from last event
+        const recentEvent = this.eventLog.length > 0 && this.eventLog[this.eventLog.length - 1]?.stateId === id;
         const stateCode = agent.encodeState(s.resources, hasPartners, recentEvent);
 
         // Get Q-values for the current state
@@ -489,15 +618,101 @@ class World {
           qValues[a] = agent.qTable[stateCode]?.[a] ?? 0;
         });
 
+        // Find best Q-value action
+        let bestAction = ACTIONS[0];
+        let bestVal = -Infinity;
+        ACTIONS.forEach(a => {
+          if (qValues[a] > bestVal) { bestVal = qValues[a]; bestAction = a; }
+        });
+        const wasExploring = s.action !== bestAction;
+
+        // Identify critical / low resources
+        const resourceEntries = Object.entries(s.resources);
+        const critical = resourceEntries.filter(([, v]) => v <= 15).map(([k]) => k);
+        const low = resourceEntries.filter(([, v]) => v > 15 && v <= 30).map(([k]) => k);
+        const surplus = resourceEntries.filter(([, v]) => v > 75).map(([k]) => k);
+        const lowestRes = resourceEntries.reduce((a, b) => a[1] < b[1] ? a : b);
+        const avgRes = resourceEntries.reduce((sum, [, v]) => sum + v, 0) / 4;
+
+        // Active trades for this state
+        const activeTrades = this.tradeSystem.tradeHistory
+          .filter(t => (t.from === id || t.to === id) && t.active !== false)
+          .slice(-3);
+
+        // Strategy breakdown (historical action %)
+        const strategyBreakdown = agent.getStrategyBreakdown();
+
+        // Generate human-readable reasoning
+        const reasons = [];
+
+        if (wasExploring) {
+          reasons.push(`Randomly explored instead of picking best action (${bestAction}) — epsilon = ${(agent.explorationRate * 100).toFixed(0)}%`);
+        }
+
+        // Why the chosen/best action makes sense
+        const effectiveAction = wasExploring ? s.action : bestAction;
+        switch (effectiveAction) {
+          case 'HARVEST':
+            if (critical.length > 0) reasons.push(`Critical shortage in ${critical.join(', ')} — harvesting to survive`);
+            else if (low.length > 0) reasons.push(`Low ${low.join(', ')} — harvesting to rebuild reserves`);
+            else reasons.push('Harvesting to boost resource levels');
+            break;
+          case 'CONSERVE':
+            if (avgRes < 40) reasons.push('Resources declining — conserving to slow depletion');
+            else reasons.push('Conserving resources to maintain stability');
+            if (critical.length > 0) reasons.push(`Protecting depleting ${critical.join(', ')}`);
+            break;
+          case 'TRADE':
+            if (surplus.length > 0 && (low.length > 0 || critical.length > 0))
+              reasons.push(`Has surplus ${surplus.join(', ')} but needs ${[...critical, ...low].join(', ')} — trading to rebalance`);
+            else if (hasPartners) reasons.push('Leveraging existing trade partnerships');
+            else reasons.push('Seeking trade partners for resource exchange');
+            break;
+          case 'EXPAND':
+            if (avgRes > 50) reasons.push('Resources stable — expanding territory for growth');
+            else reasons.push('Expanding despite limited resources — risky growth strategy');
+            break;
+          case 'DEFEND':
+            if (recentEvent) reasons.push('Defending against recent disruptive event');
+            else if (critical.length > 0) reasons.push(`Protecting critical ${critical.join(', ')} from further loss`);
+            else reasons.push('Fortifying defenses to prevent resource loss');
+            break;
+          case 'INNOVATE':
+            if (avgRes > 40) reasons.push('Investing in innovation for long-term efficiency gains');
+            else reasons.push('Innovating despite scarcity — seeking breakthrough solutions');
+            break;
+        }
+
+        // Add context about overall state
+        if (s.happiness < 30) reasons.push(`Population unhappy (${s.happiness}%) — civil unrest risk`);
+        if (s.population < 50) reasons.push(`Population declining (${s.population}) — survival pressure`);
+        if (critical.length >= 2) reasons.push(`Multiple resources critical — collapse risk HIGH`);
+
         return {
           id: s.id,
           name: s.name,
           stateCode,
           qValues,
           chosenAction: s.action,
+          bestAction,
+          wasExploring,
           explorationRate: agent.explorationRate,
           totalReward: agent.totalReward,
           statesVisited: agent.getStateSpaceSize(),
+          // Rich context data
+          resources: { ...s.resources },
+          population: s.population,
+          happiness: s.happiness,
+          gdp: s.gdp,
+          critical,
+          low,
+          surplus,
+          lowestResource: { name: lowestRes[0], value: lowestRes[1] },
+          avgResources: Math.round(avgRes),
+          hasPartners,
+          activeTrades: activeTrades.length,
+          strategyBreakdown,
+          reasons,
         };
       });
   }
@@ -513,8 +728,12 @@ class World {
     this.collapsedStates = [];
     this.usedEvents = {};
     this.eventRate = 0.30;
+    this.baseEventRate = 0.30;
     this.tradeDisabled = false;
     this.innovationBonus = {};
+    this.climateStress = 0;
+    this.climateEvents = [];
+    this.lastNegotiations = [];
     this._initFromData(data);
   }
 
