@@ -19,6 +19,7 @@ import AnalysisPanel from "./features/AnalysisPanel";
 import StoryPanel from "./features/StoryPanel";
 import ComparisonView from "./features/ComparisonView";
 import ExplainabilityPanel from "./features/ExplainabilityPanel";
+import InsightsPanel from "./features/InsightsPanel";
 
 // Engine
 import World from "./engine/World";
@@ -57,6 +58,10 @@ function App() {
   const [scenarioResult, setScenarioResult] = useState(null);
   const [comparisonData, setComparisonData] = useState({ ai: null, random: null });
   const [agentExplanations, setAgentExplanations] = useState([]);
+  const [climateStress, setClimateStress] = useState(0);
+  const [negotiations, setNegotiations] = useState([]);
+  const [crossRunResults, setCrossRunResults] = useState(null);
+  const [crossRunLoading, setCrossRunLoading] = useState(false);
   const intervalRef = useRef(null);
 
   // ─── Tab state ──────────────────────────────────────────────────
@@ -76,6 +81,8 @@ function App() {
     setAlliances(result.alliances);
     setHistory((prev) => [...prev, result]);
     setAgentExplanations(world.getAgentExplanations());
+    setClimateStress(result.climateStress || 0);
+    setNegotiations(result.negotiations || []);
   }, [world]);
 
   useEffect(() => {
@@ -100,6 +107,8 @@ function App() {
     setScenarioResult(null);
     setSelectedState(null);
     setAgentExplanations([]);
+    setClimateStress(0);
+    setNegotiations([]);
     setStates(world.getState());
   }, [world]);
 
@@ -180,6 +189,42 @@ function App() {
     setComparisonData({ ai: runSim(true), random: runSim(false) });
   }, []);
 
+  // ─── Cross-run statistical analysis (10 independent sims) ───────
+  const handleCrossRunAnalysis = useCallback(() => {
+    setCrossRunLoading(true);
+    // Use setTimeout so UI updates before heavy computation
+    setTimeout(() => {
+      const results = [];
+      for (let run = 0; run < 10; run++) {
+        const simWorld = new World(JSON.parse(JSON.stringify(statesData)));
+        let totalTrades = 0;
+        for (let i = 0; i < 100; i++) {
+          const r = simWorld.tick();
+          totalTrades += (r.trades || []).length;
+        }
+        const finalStates = simWorld.getState();
+        const survived = finalStates.filter(s => s.alive !== false).length;
+        const total = finalStates.length || 8;
+        const strategies = {};
+        finalStates.filter(s => s.alive !== false).forEach(s => {
+          if (s.strategy) {
+            const top = Object.entries(s.strategy).reduce((a, b) => a[1] > b[1] ? a : b, ['', 0]);
+            strategies[top[0]] = (strategies[top[0]] || 0) + 1;
+          }
+        });
+        const topStrategy = Object.entries(strategies).sort((a, b) => b[1] - a[1])[0];
+        results.push({
+          survived, total, totalTrades,
+          topStrategy: topStrategy ? topStrategy[0] : 'NONE',
+          avgHappiness: Math.round(finalStates.reduce((s, st) => s + (st.happiness || 0), 0) / total),
+          totalGdp: Math.round(finalStates.reduce((s, st) => s + (st.gdp || 0), 0)),
+        });
+      }
+      setCrossRunResults(results);
+      setCrossRunLoading(false);
+    }, 50);
+  }, []);
+
   // ─── Layout ─────────────────────────────────────────────────────
   return (
     <>
@@ -195,12 +240,15 @@ function App() {
           onReset={handleReset}
           onSpeedChange={setSpeed}
           states={states}
+          climateStress={climateStress}
+          trades={trades}
+          alliances={alliances}
         />
 
         {/* ═══ MIDDLE: Map + Right Panel ════════════════════════════ */}
         <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
 
-          {/* ─── Left: Map (large, 7 columns) ────────────────────── */}
+          {/* ─── Left: Map (large, 7 columns) ─────────────────── */}
           <div className="col-span-7 flex flex-col gap-3 min-h-0">
             <div className="flex-1 min-h-0">
               <IndiaMap
@@ -259,16 +307,26 @@ function App() {
                     />
                   )}
                   {cycle > 30 && (
+                    <InsightsPanel
+                      history={history}
+                      states={states}
+                      collapsedStates={world.collapsedStates}
+                      crossRunResults={crossRunResults}
+                      onRunCrossAnalysis={handleCrossRunAnalysis}
+                      crossRunLoading={crossRunLoading}
+                    />
+                  )}
+                  {cycle > 30 && (
                     <StoryPanel
                       history={history}
                       collapsedStates={world.collapsedStates}
                     />
                   )}
-                  {cycle <= 50 && (
+                  {cycle <= 30 && (
                     <div className="glass-card p-10 text-center animate-scale-in">
                       <div className="text-3xl mb-3 opacity-50">...</div>
-                      <p className="text-zinc-400 text-sm">Run the simulation past <span className="text-gradient font-bold">cycle 50</span> to unlock</p>
-                      <p className="text-zinc-500 text-xs mt-1">Analysis & Story panels</p>
+                      <p className="text-zinc-400 text-sm">Run the simulation past <span className="text-gradient font-bold">cycle 30</span> to unlock</p>
+                      <p className="text-zinc-500 text-xs mt-1">Analysis, Insights & Story panels</p>
                     </div>
                   )}
                 </div>
@@ -307,9 +365,9 @@ function App() {
 
           {/* Bottom content */}
           <div className="flex-1 overflow-y-auto px-4 py-3">
-            {bottomTab === 'events' && <EventLog events={events} />}
+            {bottomTab === 'events' && <EventLog events={events} negotiations={negotiations} />}
             {bottomTab === 'trends' && <TrendCharts history={history} />}
-            {bottomTab === 'trade' && <TradeNetwork trades={trades} alliances={alliances} />}
+            {bottomTab === 'trade' && <TradeNetwork trades={trades} alliances={alliances} negotiations={negotiations} />}
             {bottomTab === 'analysis' && cycle > 50 && (
               <AnalysisPanel
                 states={states}

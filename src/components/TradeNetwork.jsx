@@ -14,7 +14,7 @@ function getTrustLabel(trust) {
   return 'New';
 }
 
-function TradeNetwork({ trades = [], alliances = [] }) {
+function TradeNetwork({ trades = [], alliances = [], negotiations = [] }) {
   const allianceKeys = new Set(
     alliances.map(a => a.states?.sort().join('_')).filter(Boolean)
   );
@@ -37,8 +37,8 @@ function TradeNetwork({ trades = [], alliances = [] }) {
             <div
               key={idx}
               className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-[1.01] card-entrance ${isAlliance
-                  ? 'bg-gradient-to-r from-amber-500/8 to-amber-500/5 border border-amber-500/20'
-                  : 'bg-white/[0.02] border border-white/5 hover:border-white/10'
+                ? 'bg-gradient-to-r from-amber-500/8 to-amber-500/5 border border-amber-500/20'
+                : 'bg-white/[0.02] border border-white/5 hover:border-white/10'
                 }`}
             >
               <div className="flex items-center gap-2">
@@ -80,6 +80,11 @@ function TradeNetwork({ trades = [], alliances = [] }) {
                   }`}>
                   {isAlliance ? 'Alliance' : getTrustLabel(trade.trust || 0)}
                 </span>
+                {trade.negotiated && (
+                  <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold bg-violet-500/15 text-violet-400">
+                    🤝 Negotiated
+                  </span>
+                )}
               </div>
             </div>
           );
@@ -91,6 +96,11 @@ function TradeNetwork({ trades = [], alliances = [] }) {
           <div className="group">
             <div className="text-base font-bold text-white tabular-nums font-mono">{trades.length}</div>
             <div className="text-[10px] text-gray-500 uppercase tracking-wider group-hover:text-gray-400 transition-colors">Trades</div>
+          </div>
+          <div className="w-px h-8 bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+          <div className="group">
+            <div className="text-base font-bold text-violet-400 tabular-nums font-mono">{trades.filter(t => t.negotiated).length}</div>
+            <div className="text-[10px] text-gray-500 uppercase tracking-wider group-hover:text-gray-400 transition-colors">Negotiated</div>
           </div>
           <div className="w-px h-8 bg-gradient-to-b from-transparent via-white/10 to-transparent" />
           <div className="group">

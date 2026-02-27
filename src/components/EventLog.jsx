@@ -1,27 +1,27 @@
 import React, { useRef, useEffect } from 'react';
 
 const EVENT_TYPE_COLORS = {
-  drought:          { color: 'text-red-400', bg: 'bg-red-500/8', border: 'border-red-500/15' },
-  flood:            { color: 'text-blue-400', bg: 'bg-blue-500/8', border: 'border-blue-500/15' },
-  earthquake:       { color: 'text-orange-400', bg: 'bg-orange-500/8', border: 'border-orange-500/15' },
-  tech_breakthrough:{ color: 'text-green-400', bg: 'bg-green-500/8', border: 'border-green-500/15' },
-  harvest_boom:     { color: 'text-emerald-400', bg: 'bg-emerald-500/8', border: 'border-emerald-500/15' },
-  pandemic:         { color: 'text-purple-400', bg: 'bg-purple-500/8', border: 'border-purple-500/15' },
-  pollution:        { color: 'text-gray-400', bg: 'bg-gray-500/8', border: 'border-gray-500/15' },
-  dispute:          { color: 'text-yellow-400', bg: 'bg-yellow-500/8', border: 'border-yellow-500/15' },
-  economic:         { color: 'text-sky-400', bg: 'bg-sky-500/8', border: 'border-sky-500/15' },
-  policy:           { color: 'text-violet-400', bg: 'bg-violet-500/8', border: 'border-violet-500/15' },
-  environmental:    { color: 'text-lime-400', bg: 'bg-lime-500/8', border: 'border-lime-500/15' },
-  infrastructure:   { color: 'text-teal-400', bg: 'bg-teal-500/8', border: 'border-teal-500/15' },
-  conflict:         { color: 'text-red-300', bg: 'bg-red-500/8', border: 'border-red-500/15' },
-  discovery:        { color: 'text-amber-400', bg: 'bg-amber-500/8', border: 'border-amber-500/15' },
-  climate:          { color: 'text-orange-300', bg: 'bg-orange-500/8', border: 'border-orange-500/15' },
-  innovation:       { color: 'text-yellow-300', bg: 'bg-yellow-500/8', border: 'border-yellow-500/15' },
-  production:       { color: 'text-blue-300', bg: 'bg-blue-500/8', border: 'border-blue-500/15' },
-  conservation:     { color: 'text-green-300', bg: 'bg-green-500/8', border: 'border-green-500/15' },
-  crisis:           { color: 'text-red-500', bg: 'bg-red-500/8', border: 'border-red-500/15' },
-  demographic:      { color: 'text-pink-400', bg: 'bg-pink-500/8', border: 'border-pink-500/15' },
-  crop_failure:     { color: 'text-red-300', bg: 'bg-red-500/8', border: 'border-red-500/15' },
+  drought: { color: 'text-red-400', bg: 'bg-red-500/8', border: 'border-red-500/15' },
+  flood: { color: 'text-blue-400', bg: 'bg-blue-500/8', border: 'border-blue-500/15' },
+  earthquake: { color: 'text-orange-400', bg: 'bg-orange-500/8', border: 'border-orange-500/15' },
+  tech_breakthrough: { color: 'text-green-400', bg: 'bg-green-500/8', border: 'border-green-500/15' },
+  harvest_boom: { color: 'text-emerald-400', bg: 'bg-emerald-500/8', border: 'border-emerald-500/15' },
+  pandemic: { color: 'text-purple-400', bg: 'bg-purple-500/8', border: 'border-purple-500/15' },
+  pollution: { color: 'text-gray-400', bg: 'bg-gray-500/8', border: 'border-gray-500/15' },
+  dispute: { color: 'text-yellow-400', bg: 'bg-yellow-500/8', border: 'border-yellow-500/15' },
+  economic: { color: 'text-sky-400', bg: 'bg-sky-500/8', border: 'border-sky-500/15' },
+  policy: { color: 'text-violet-400', bg: 'bg-violet-500/8', border: 'border-violet-500/15' },
+  environmental: { color: 'text-lime-400', bg: 'bg-lime-500/8', border: 'border-lime-500/15' },
+  infrastructure: { color: 'text-teal-400', bg: 'bg-teal-500/8', border: 'border-teal-500/15' },
+  conflict: { color: 'text-red-300', bg: 'bg-red-500/8', border: 'border-red-500/15' },
+  discovery: { color: 'text-amber-400', bg: 'bg-amber-500/8', border: 'border-amber-500/15' },
+  climate: { color: 'text-orange-300', bg: 'bg-orange-500/8', border: 'border-orange-500/15' },
+  innovation: { color: 'text-yellow-300', bg: 'bg-yellow-500/8', border: 'border-yellow-500/15' },
+  production: { color: 'text-blue-300', bg: 'bg-blue-500/8', border: 'border-blue-500/15' },
+  conservation: { color: 'text-green-300', bg: 'bg-green-500/8', border: 'border-green-500/15' },
+  crisis: { color: 'text-red-500', bg: 'bg-red-500/8', border: 'border-red-500/15' },
+  demographic: { color: 'text-pink-400', bg: 'bg-pink-500/8', border: 'border-pink-500/15' },
+  crop_failure: { color: 'text-red-300', bg: 'bg-red-500/8', border: 'border-red-500/15' },
 };
 
 const EFFECT_LABELS = { water: 'W', food: 'F', energy: 'E', land: 'L', population: 'Pop', happiness: 'Hap', gdp: 'GDP' };
@@ -44,7 +44,13 @@ function getEffectBadges(effects) {
   return badges;
 }
 
-function EventLog({ events = [] }) {
+const NEGOTIATION_COLORS = {
+  accepted: { color: 'text-emerald-400', bg: 'bg-emerald-500/8', border: 'border-emerald-500/15', icon: '🤝' },
+  rejected: { color: 'text-rose-400', bg: 'bg-rose-500/8', border: 'border-rose-500/15', icon: '✗' },
+  counter: { color: 'text-amber-400', bg: 'bg-amber-500/8', border: 'border-amber-500/15', icon: '↩' },
+};
+
+function EventLog({ events = [], negotiations = [] }) {
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -53,15 +59,55 @@ function EventLog({ events = [] }) {
     }
   }, [events]);
 
+  /* Merge events and negotiation log entries into a single timeline */
+  const negotiationEntries = (negotiations || []).flatMap(n =>
+    (n.log || []).map(entry => ({
+      _isNegotiation: true,
+      ...entry,
+    }))
+  );
+
   return (
     <div>
       <div ref={scrollRef} className="overflow-y-auto max-h-52 space-y-1.5 pr-1">
-        {events.length === 0 && (
+        {events.length === 0 && negotiationEntries.length === 0 && (
           <div className="text-center text-xs text-gray-600 py-8">
             <div className="text-2xl mb-2 opacity-40">--</div>
             No events yet. Start the simulation to begin.
           </div>
         )}
+
+        {/* Negotiation entries */}
+        {negotiationEntries.length > 0 && (
+          <div className="mb-2">
+            <span className="text-[9px] text-zinc-500 uppercase tracking-wider font-medium px-1">Negotiations</span>
+          </div>
+        )}
+        {negotiationEntries.map((entry, idx) => {
+          const cfg = NEGOTIATION_COLORS[entry.result] || NEGOTIATION_COLORS.rejected;
+          return (
+            <div
+              key={`neg-${idx}`}
+              className={`p-2 rounded-xl ${cfg.bg} border ${cfg.border} transition-all duration-300 hover:scale-[1.01] card-entrance`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-sm">{cfg.icon}</span>
+                <span className="text-[11px] text-white capitalize font-medium">{entry.from}</span>
+                <svg className="w-2.5 h-2.5 text-gray-600" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+                <span className="text-[11px] text-white capitalize font-medium">{entry.to}</span>
+                <span className="flex-1" />
+                <span className={`text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase ${cfg.color} ${cfg.bg}`}>{entry.result}</span>
+              </div>
+              {entry.detail && (
+                <p className="text-[10px] text-zinc-500 mt-0.5 ml-6">{entry.detail}</p>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Regular events */}
         {events.map((event, idx) => {
           const config = EVENT_TYPE_COLORS[event.type] || { color: 'text-gray-400', bg: 'bg-gray-500/8', border: 'border-gray-500/15' };
           return (
@@ -71,7 +117,7 @@ function EventLog({ events = [] }) {
             >
               <div className="flex items-start gap-2.5">
                 <div className={`w-2 h-2 rounded-full mt-1 flex-shrink-0 ${config.color.replace('text-', 'bg-')}`}
-                     style={{ boxShadow: `0 0 6px currentColor` }} />
+                  style={{ boxShadow: `0 0 6px currentColor` }} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="text-[9px] text-violet-400/60 font-mono tabular-nums font-medium bg-violet-500/8 px-1.5 py-0.5 rounded">C{event.cycle}</span>
