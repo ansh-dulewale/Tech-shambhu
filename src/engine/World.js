@@ -535,7 +535,7 @@ class World {
 
     const event = {
       cycle: this.cycle,
-      headline: `🌡️ ${chosen.headline(stateName)}`,
+      headline: `${chosen.headline(stateName)}`,
       source: `Climate Model (stress: ${Math.round(severity * 100)}%)`,
       stateId,
       effects,

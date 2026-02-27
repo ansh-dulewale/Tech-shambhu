@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
 const RESOURCE_CONFIG = {
-  water: { color: '#67e8f9', glow: 'rgba(103,232,249,0.3)', icon: '💧', label: 'Water' },
-  food:  { color: '#6ee7b7', glow: 'rgba(110,231,183,0.3)', icon: '🌾', label: 'Food' },
-  energy:{ color: '#fcd34d', glow: 'rgba(252,211,77,0.3)',  icon: '⚡', label: 'Energy' },
-  land:  { color: '#c4b5fd', glow: 'rgba(196,181,253,0.3)', icon: '🏔️', label: 'Land' },
+  water: { color: '#67e8f9', glow: 'rgba(103,232,249,0.3)', icon: 'W', label: 'Water' },
+  food:  { color: '#6ee7b7', glow: 'rgba(110,231,183,0.3)', icon: 'F', label: 'Food' },
+  energy:{ color: '#fcd34d', glow: 'rgba(252,211,77,0.3)',  icon: 'E', label: 'Energy' },
+  land:  { color: '#c4b5fd', glow: 'rgba(196,181,253,0.3)', icon: 'L', label: 'Land' },
 };
 
 function getStatusInfo(avg) {
@@ -43,7 +43,7 @@ function HealthRing({ value, color, size = 44 }) {
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-[11px] font-bold font-mono tabular-nums" style={{ color }}>
+        <span className="text-xs font-bold font-mono tabular-nums" style={{ color }}>
           {Math.round(value)}
         </span>
       </div>
@@ -62,9 +62,9 @@ function ResourceBar({ value, resourceKey }) {
   return (
     <div className="group flex items-center gap-3">
       {/* Icon + label */}
-      <div className="flex items-center gap-1.5 w-16">
-        <span className="text-[10px]">{config.icon}</span>
-        <span className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">{config.label}</span>
+      <div className="flex items-center gap-1.5 w-20">
+        <span className="text-xs">{config.icon}</span>
+        <span className="text-[11px] text-zinc-500 font-medium uppercase tracking-wider">{config.label}</span>
       </div>
 
       {/* Bar track */}
@@ -80,14 +80,14 @@ function ResourceBar({ value, resourceKey }) {
           />
         ) : (
           <div className="h-full w-full flex items-center justify-center">
-            <span className="text-[7px] text-red-500/50 font-bold uppercase tracking-widest">depleted</span>
+            <span className="text-[8px] text-red-500/50 font-bold uppercase tracking-widest">depleted</span>
           </div>
         )}
       </div>
 
       {/* Value */}
       <span
-        className="text-[11px] w-8 text-right font-bold tabular-nums font-mono transition-colors"
+        className="text-xs w-8 text-right font-bold tabular-nums font-mono transition-colors"
         style={{ color: barColor }}
       >
         {Math.round(value)}
@@ -109,7 +109,7 @@ function StateCard({ state, isExpanded, onToggle }) {
             <div className="w-2 h-2 rounded-full bg-zinc-600" />
             <span className="text-sm font-semibold text-zinc-600 line-through">{state.name}</span>
           </div>
-          <span className="text-[9px] px-2 py-0.5 rounded-md bg-red-500/10 text-red-400/60 font-bold uppercase tracking-wider border border-red-500/10">
+          <span className="text-[10px] px-2.5 py-1 rounded-md bg-red-500/10 text-red-400/60 font-bold uppercase tracking-wider border border-red-500/10">
             Collapsed
           </span>
         </div>
@@ -123,52 +123,52 @@ function StateCard({ state, isExpanded, onToggle }) {
       onClick={onToggle}
     >
       {/* Top row */}
-      <div className="flex items-center gap-3 px-4 py-3">
+      <div className="flex items-center gap-4 px-5 py-4">
         {/* Health ring */}
-        <HealthRing value={avg} color={status.color} />
+        <HealthRing value={avg} color={status.color} size={52} />
 
         {/* Name + status */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-[13px] font-bold text-white tracking-tight">{state.name}</span>
+          <div className="flex items-center gap-3">
+            <span className="text-[15px] font-bold text-white tracking-tight">{state.name}</span>
             <span
-              className="text-[8px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider"
+              className="text-[10px] px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider"
               style={{ background: status.color + '18', color: status.color, border: `1px solid ${status.color}25` }}
             >
               {status.label}
             </span>
           </div>
           {state.action && (
-            <div className="flex items-center gap-1.5 mt-1">
-              <div className="w-1 h-1 rounded-full bg-violet-400/50" />
-              <span className="text-[9px] text-violet-300/70 font-semibold uppercase tracking-wider">{state.action}</span>
+            <div className="flex items-center gap-2 mt-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-violet-400/50" />
+              <span className="text-[11px] text-violet-300/70 font-semibold uppercase tracking-wider">{state.action}</span>
             </div>
           )}
         </div>
 
         {/* Quick stats */}
-        <div className="flex items-center gap-3 text-[10px]">
-          <div className="text-center">
-            <div className="text-zinc-500 uppercase tracking-wider text-[8px] mb-0.5">Pop</div>
-            <div className="text-white font-bold font-mono tabular-nums">{state.population}</div>
+        <div className="flex items-center gap-4">
+          <div className="text-center px-2">
+            <div className="text-zinc-400 uppercase tracking-wider text-[10px] mb-1 font-semibold">Pop</div>
+            <div className="text-white text-sm font-bold font-mono tabular-nums">{state.population}</div>
           </div>
-          <div className="w-px h-6 bg-white/[0.06]" />
-          <div className="text-center">
-            <div className="text-zinc-500 uppercase tracking-wider text-[8px] mb-0.5">Happy</div>
-            <div className="font-bold font-mono tabular-nums" style={{ color: state.happiness >= 50 ? '#34d399' : state.happiness >= 30 ? '#fbbf24' : '#f87171' }}>
+          <div className="w-px h-8 bg-white/[0.08]" />
+          <div className="text-center px-2">
+            <div className="text-zinc-400 uppercase tracking-wider text-[10px] mb-1 font-semibold">Happy</div>
+            <div className="text-sm font-bold font-mono tabular-nums" style={{ color: state.happiness >= 50 ? '#34d399' : state.happiness >= 30 ? '#fbbf24' : '#f87171' }}>
               {state.happiness}%
             </div>
           </div>
-          <div className="w-px h-6 bg-white/[0.06]" />
-          <div className="text-center">
-            <div className="text-zinc-500 uppercase tracking-wider text-[8px] mb-0.5">GDP</div>
-            <div className="text-cyan-400 font-bold font-mono tabular-nums">{state.gdp}</div>
+          <div className="w-px h-8 bg-white/[0.08]" />
+          <div className="text-center px-2">
+            <div className="text-zinc-400 uppercase tracking-wider text-[10px] mb-1 font-semibold">GDP</div>
+            <div className="text-cyan-400 text-sm font-bold font-mono tabular-nums">{state.gdp}</div>
           </div>
         </div>
 
         {/* Expand arrow */}
         <svg
-          className={`w-4 h-4 text-zinc-600 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 text-zinc-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -177,7 +177,7 @@ function StateCard({ state, isExpanded, onToggle }) {
 
       {/* Expanded: Resource bars */}
       {isExpanded && (
-        <div className="px-4 pb-3.5 pt-1 space-y-2 border-t border-white/[0.04]">
+        <div className="px-5 pb-4 pt-2 space-y-2.5 border-t border-white/[0.06]">
           {Object.keys(RESOURCE_CONFIG).map(key => (
             <ResourceBar key={key} value={state.resources[key]} resourceKey={key} />
           ))}
@@ -206,12 +206,14 @@ function GlobalSummary({ states }) {
   ];
 
   return (
-    <div className="flex items-center gap-1.5 flex-wrap">
+    <div className="grid grid-cols-5 gap-3">
       {items.map(item => (
-        <div key={item.label} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-          <div className="w-1 h-1 rounded-full" style={{ backgroundColor: item.color }} />
-          <span className="text-[8px] text-zinc-600 uppercase tracking-wider font-medium">{item.label}</span>
-          <span className="text-[11px] font-bold tabular-nums font-mono" style={{ color: item.color }}>{item.value}</span>
+        <div key={item.label} className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
+          <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">{item.label}</span>
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+            <span className="text-[16px] font-black tabular-nums font-mono" style={{ color: item.color }}>{item.value}</span>
+          </div>
         </div>
       ))}
     </div>
@@ -249,33 +251,33 @@ function ResourceDashboard({ states = [] }) {
   });
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="rounded-2xl bg-[#0d0b1a]/60 border border-white/[0.04] overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.04]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-fuchsia-400 to-violet-500" />
+      <div className="rounded-2xl bg-[#0d0b1a]/60 border border-white/[0.06] overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-fuchsia-400 to-violet-500" />
             <div>
-              <h2 className="text-[13px] font-semibold text-white/90 tracking-tight">Resource Overview</h2>
-              <p className="text-[9px] text-zinc-500 mt-0.5 uppercase tracking-wider">all states status & resources</p>
+              <h2 className="text-[15px] font-bold text-white tracking-tight">Resource Overview</h2>
+              <p className="text-[11px] text-zinc-500 mt-0.5 uppercase tracking-wider">All States Status & Resources</p>
             </div>
           </div>
           <button
             onClick={expandAll}
-            className="text-[9px] px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all font-medium uppercase tracking-wider"
+            className="text-[11px] px-4 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all font-semibold uppercase tracking-wider"
           >
             {expandedStates.size > 0 ? 'Collapse All' : 'Expand All'}
           </button>
         </div>
 
         {/* Global summary */}
-        <div className="px-5 py-3">
+        <div className="px-5 pb-4">
           <GlobalSummary states={states} />
         </div>
       </div>
 
       {/* State cards */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         {sorted.map(state => (
           <StateCard
             key={state.id}

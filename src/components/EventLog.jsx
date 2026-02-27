@@ -34,7 +34,7 @@ function getEffectBadges(effects) {
       badges.push(
         <span
           key={key}
-          className={`text-[8px] px-1 py-0.5 rounded font-medium ${isPositive ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}
+          className={`text-[11px] px-2 py-0.5 rounded-md font-bold tabular-nums ${isPositive ? 'bg-green-500/12 text-green-400' : 'bg-red-500/12 text-red-400'}`}
         >
           {EFFECT_LABELS[key] || key} {isPositive ? '+' : ''}{value}
         </span>
@@ -45,7 +45,7 @@ function getEffectBadges(effects) {
 }
 
 const NEGOTIATION_COLORS = {
-  accepted: { color: 'text-emerald-400', bg: 'bg-emerald-500/8', border: 'border-emerald-500/15', icon: '🤝' },
+  accepted: { color: 'text-emerald-400', bg: 'bg-emerald-500/8', border: 'border-emerald-500/15', icon: '✓' },
   rejected: { color: 'text-rose-400', bg: 'bg-rose-500/8', border: 'border-rose-500/15', icon: '✗' },
   counter: { color: 'text-amber-400', bg: 'bg-amber-500/8', border: 'border-amber-500/15', icon: '↩' },
 };
@@ -69,9 +69,9 @@ function EventLog({ events = [], negotiations = [] }) {
 
   return (
     <div>
-      <div ref={scrollRef} className="overflow-y-auto max-h-52 space-y-1.5 pr-1">
+      <div ref={scrollRef} className="overflow-y-auto max-h-[400px] space-y-2.5 pr-1">
         {events.length === 0 && negotiationEntries.length === 0 && (
-          <div className="text-center text-xs text-gray-600 py-8">
+          <div className="text-center text-sm text-gray-600 py-8">
             <div className="text-2xl mb-2 opacity-40">--</div>
             No events yet. Start the simulation to begin.
           </div>
@@ -79,8 +79,8 @@ function EventLog({ events = [], negotiations = [] }) {
 
         {/* Negotiation entries */}
         {negotiationEntries.length > 0 && (
-          <div className="mb-2">
-            <span className="text-[9px] text-zinc-500 uppercase tracking-wider font-medium px-1">Negotiations</span>
+          <div className="mb-3">
+            <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-semibold px-1">Negotiations</span>
           </div>
         )}
         {negotiationEntries.map((entry, idx) => {
@@ -88,20 +88,20 @@ function EventLog({ events = [], negotiations = [] }) {
           return (
             <div
               key={`neg-${idx}`}
-              className={`p-2 rounded-xl ${cfg.bg} border ${cfg.border} transition-all duration-300 hover:scale-[1.01] card-entrance`}
+              className={`px-4 py-3 rounded-xl ${cfg.bg} border ${cfg.border} transition-all duration-300 hover:scale-[1.005] card-entrance`}
             >
-              <div className="flex items-center gap-2">
-                <span className="text-sm">{cfg.icon}</span>
-                <span className="text-[11px] text-white capitalize font-medium">{entry.from}</span>
-                <svg className="w-2.5 h-2.5 text-gray-600" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <div className="flex items-center gap-3">
+                <span className="text-base font-bold">{cfg.icon}</span>
+                <span className="text-[13px] text-white capitalize font-semibold">{entry.from}</span>
+                <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
-                <span className="text-[11px] text-white capitalize font-medium">{entry.to}</span>
+                <span className="text-[13px] text-white capitalize font-semibold">{entry.to}</span>
                 <span className="flex-1" />
-                <span className={`text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase ${cfg.color} ${cfg.bg}`}>{entry.result}</span>
+                <span className={`text-[11px] px-2.5 py-1 rounded-lg font-bold uppercase ${cfg.color} ${cfg.bg}`}>{entry.result}</span>
               </div>
               {entry.detail && (
-                <p className="text-[10px] text-zinc-500 mt-0.5 ml-6">{entry.detail}</p>
+                <p className="text-[12px] text-zinc-400 mt-1 ml-8">{entry.detail}</p>
               )}
             </div>
           );
@@ -113,21 +113,21 @@ function EventLog({ events = [], negotiations = [] }) {
           return (
             <div
               key={idx}
-              className={`p-2.5 rounded-xl ${config.bg} border ${config.border} transition-all duration-300 hover:scale-[1.01] card-entrance`}
+              className={`px-4 py-3 rounded-xl ${config.bg} border ${config.border} transition-all duration-300 hover:scale-[1.005] card-entrance`}
             >
-              <div className="flex items-start gap-2.5">
-                <div className={`w-2 h-2 rounded-full mt-1 flex-shrink-0 ${config.color.replace('text-', 'bg-')}`}
-                  style={{ boxShadow: `0 0 6px currentColor` }} />
+              <div className="flex items-start gap-3">
+                <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${config.color.replace('text-', 'bg-')}`}
+                  style={{ boxShadow: `0 0 8px currentColor` }} />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-[9px] text-violet-400/60 font-mono tabular-nums font-medium bg-violet-500/8 px-1.5 py-0.5 rounded">C{event.cycle}</span>
-                    <span className="text-[9px] text-gray-400 uppercase tracking-wider font-medium">{event.stateId || 'Global'}</span>
+                  <div className="flex items-center gap-2.5 mb-1">
+                    <span className="text-[11px] text-violet-400/70 font-mono tabular-nums font-semibold bg-violet-500/10 px-2 py-0.5 rounded-md">C{event.cycle}</span>
+                    <span className="text-[11px] text-gray-300 uppercase tracking-wider font-semibold">{event.stateId || 'GLOBAL'}</span>
                   </div>
-                  <p className={`text-[11px] ${config.color} font-semibold leading-snug`}>
+                  <p className={`text-[13px] ${config.color} font-bold leading-snug`}>
                     {event.headline}
                   </p>
-                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                    <span className="text-[8px] text-gray-600">{event.source}</span>
+                  <div className="flex items-center gap-2.5 mt-2 flex-wrap">
+                    <span className="text-[10px] text-gray-500 italic">{event.source}</span>
                     <span className="flex-1" />
                     {event.effects && getEffectBadges(event.effects)}
                   </div>

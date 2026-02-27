@@ -11,7 +11,7 @@ const RESOURCE_LABELS = { water: "Water", food: "Food", energy: "Energy", land: 
 // ── Real-World Parallel Database ─────────────────────────────────
 const PARALLELS = {
     isolation_collapse: {
-        icon: "🇰🇵",
+        icon: "KP",
         title: "North Korea Effect",
         real: "Similar to how North Korea's self-imposed isolation led to the 1990s famine that killed ~3 million, isolated states in our simulation collapsed significantly faster.",
         match: (d) =>
@@ -21,7 +21,7 @@ const PARALLELS = {
             `Isolated states collapsed ${d.isolatedVsTradingFactor}x faster than trading states.`,
     },
     trade_prosperity: {
-        icon: "🇸🇬",
+        icon: "SG",
         title: "Singapore Model",
         real: "This mirrors Singapore's transformation — a resource-poor city-state that became wealthy through aggressive trade networks and strategic partnerships.",
         match: (d) => d.topTrader && d.topTrader.survived && d.topTrader.trades > 5,
@@ -29,7 +29,7 @@ const PARALLELS = {
             `${d.topTrader.name} replicated this by building ${d.topTrader.trades} trade connections — surviving with ${d.topTrader.happiness}% happiness.`,
     },
     water_crisis: {
-        icon: "🏜️",
+        icon: "WC",
         title: "Rajasthan / Israel Water Parallel",
         real: "Echoes Rajasthan's chronic water crisis and Israel's real-world struggle — where water scarcity drives agricultural failure and population decline without technological intervention.",
         match: (d) => d.waterCollapses > 0,
@@ -37,7 +37,7 @@ const PARALLELS = {
             `${d.waterCollapses} state${d.waterCollapses > 1 ? "s" : ""} collapsed primarily due to water depletion — mirroring real arid-region failures.`,
     },
     breadbasket: {
-        icon: "🌾",
+        icon: "BB",
         title: "Punjab Breadbasket Effect",
         real: "Parallels Punjab's real-world role as India's breadbasket — food-surplus states that traded became economic stabilizers for the entire network.",
         match: (d) => d.foodSurplusTraders.length > 0,
@@ -45,7 +45,7 @@ const PARALLELS = {
             `${d.foodSurplusTraders.join(", ")} acted as breadbasket${d.foodSurplusTraders.length > 1 ? "s" : ""}, sustaining the ecosystem through food exports.`,
     },
     alliance_eu: {
-        icon: "🇪🇺",
+        icon: "EU",
         title: "EU Common Market",
         real: "Like the European Union's economic integration, allied states in the simulation achieved mutual prosperity through preferential trade agreements and trust-building.",
         match: (d) => d.allianceCount > 0,
@@ -53,7 +53,7 @@ const PARALLELS = {
             `${d.allianceCount} alliance${d.allianceCount > 1 ? "s" : ""} formed — allied states had ${d.allianceSurvivalPct}% survival vs ${d.nonAllianceSurvivalPct}% for non-allied states.`,
     },
     climate_cascade: {
-        icon: "🌡️",
+        icon: "CC",
         title: "IPCC Climate Projections",
         real: "Mirrors IPCC climate models — progressive environmental stress doesn't just add linear damage; it creates non-linear cascading failures as ecosystems cross tipping points.",
         match: (d) => d.climateEvents > 3,
@@ -61,7 +61,7 @@ const PARALLELS = {
             `${d.climateEvents} climate-driven disasters occurred, with intensity escalating ${d.climateIntensityRatio}x from early to late simulation.`,
     },
     resource_curse: {
-        icon: "🛢️",
+        icon: "RC",
         title: "Dutch Disease / Resource Curse",
         real: "Similar to Venezuela's oil dependence or the 'Dutch Disease' — states with high initial resources but poor strategy diversification collapsed when those resources depleted.",
         match: (d) => d.richCollapsed.length > 0,
@@ -365,7 +365,7 @@ function InsightsPanel({
                                             {p.real}
                                         </p>
                                         <p className="text-[10px] text-sky-400/80 mt-1.5 font-medium bg-sky-500/8 px-2 py-1 rounded-lg inline-block">
-                                            📊 {p.statText}
+                                            {p.statText}
                                         </p>
                                     </div>
                                 </div>
@@ -476,7 +476,7 @@ function InsightsPanel({
                                 Running 10 simulations...
                             </span>
                         ) : (
-                            "🔬 Run 10x Cross-Run Analysis"
+                            "Run 10x Cross-Run Analysis"
                         )}
                     </button>
                 )}

@@ -25,19 +25,19 @@ import InsightsPanel from "./features/InsightsPanel";
 import World from "./engine/World";
 
 // ─── Tab Button ─────────────────────────────────────────────────────
-function TabBtn({ active, label, icon, onClick }) {
+function TabBtn({ active, label, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`tab-pill relative px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap tracking-wide
+      className={`relative flex-1 py-3 rounded-xl text-sm font-bold transition-all text-center
         ${active
-          ? 'active bg-gradient-to-r from-violet-500/15 to-fuchsia-500/10 border border-violet-400/25 text-violet-300 shadow-md shadow-violet-500/8'
-          : 'text-zinc-500 hover:text-zinc-300 border border-transparent hover:border-white/[0.06]'
+          ? 'bg-violet-500/15 border border-violet-400/30 text-violet-300 shadow-lg shadow-violet-500/10'
+          : 'text-zinc-500 hover:text-zinc-300 border border-transparent hover:bg-white/[0.04]'
         }`}
     >
-      {icon && <span className="mr-1.5 text-sm">{icon}</span>}{label}
+      {label}
       {active && (
-        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-[2px] rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400" />
+        <span className="absolute bottom-0 left-4 right-4 h-[2px] rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400" />
       )}
     </button>
   );
@@ -230,9 +230,9 @@ function App() {
     <>
       <ThreeBackground />
       <div className="noise-overlay" />
-      <div className="relative z-10 h-screen flex flex-col overflow-hidden p-3 gap-3">
+      <div className="relative z-10 min-h-screen grid overflow-y-auto p-3 gap-3" style={{ gridTemplateRows: 'auto 1fr auto' }}>
 
-        {/* ═══ TOP: Header ═══════════════════════════════════════════ */}
+        {/* ═══ ROW 1: Header ═══════════════════════════════════════ */}
         <Header
           cycle={cycle} speed={speed} isRunning={isRunning}
           onStart={() => setIsRunning(true)}
@@ -245,35 +245,32 @@ function App() {
           alliances={alliances}
         />
 
-        {/* ═══ MIDDLE: Map + Right Panel ════════════════════════════ */}
-        <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
+        {/* ═══ ROW 2: Map + Right Panel ════════════════════════════ */}
+        <div className="grid grid-cols-12 gap-3 overflow-hidden" style={{ height: 'calc(100vh - 340px)', minHeight: '400px' }}>
 
-          {/* ─── Left: Map (large, 7 columns) ─────────────────── */}
-          <div className="col-span-7 flex flex-col gap-3 min-h-0">
-            <div className="flex-1 min-h-0">
-              <IndiaMap
-                states={states}
-                trades={trades}
-                alliances={alliances}
-                activeEvent={events.length > 0 ? events[events.length - 1] : null}
-                onStateClick={setSelectedState}
-              />
-            </div>
+          {/* ─── Left: Map (8 columns) ─────────────────── */}
+          <div className="col-span-8 min-h-0 overflow-hidden">
+            <IndiaMap
+              states={states}
+              trades={trades}
+              alliances={alliances}
+              activeEvent={events.length > 0 ? events[events.length - 1] : null}
+              onStateClick={setSelectedState}
+            />
           </div>
 
-          {/* ─── Right: Tabbed Panel (5 columns) ─────────────────── */}
-          <div className="col-span-5 flex flex-col min-h-0">
-            {/* Tab bar with glass background */}
-            <div className="flex items-center gap-1.5 mb-3 p-1 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
+          {/* ─── Right: Tabbed Panel (4 columns) ─────────────────── */}
+          <div className="col-span-4 flex flex-col min-h-0 overflow-hidden">
+            {/* Tab bar */}
+            <div className="flex items-center gap-2 mb-4 p-2 rounded-2xl bg-[#0d0b1a]/70 border border-white/[0.08] flex-shrink-0">
               <TabBtn active={rightTab === 'resources'} label="Resources" onClick={() => setRightTab('resources')} />
-              <TabBtn active={rightTab === 'godmode'} label="God Mode" onClick={() => setRightTab('godmode')} />
-              <TabBtn active={rightTab === 'scenarios'} label="Scenarios" onClick={() => setRightTab('scenarios')} />
-              <TabBtn active={rightTab === 'compare'} label="AI Battle" onClick={() => setRightTab('compare')} />
+              <TabBtn active={rightTab === 'godmode'} label="God" onClick={() => setRightTab('godmode')} />
+              <TabBtn active={rightTab === 'scenarios'} label="Stories" onClick={() => setRightTab('scenarios')} />
+              <TabBtn active={rightTab === 'compare'} label="Battle" onClick={() => setRightTab('compare')} />
               <TabBtn active={rightTab === 'explain'} label="Why?" onClick={() => setRightTab('explain')} />
-              <div className="flex-1" />
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/[0.03]">
-                <span className={`w-2 h-2 rounded-full ${states.filter(s => s.alive !== false).length >= 6 ? 'bg-emerald-400' : states.filter(s => s.alive !== false).length >= 4 ? 'bg-amber-400' : 'bg-rose-400'} animate-pulse`} />
-                <span className="text-[10px] text-zinc-400 font-mono tabular-nums font-medium">{states.filter(s => s.alive !== false).length}/8</span>
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06]">
+                <span className={`w-3 h-3 rounded-full ${states.filter(s => s.alive !== false).length >= 6 ? 'bg-emerald-400' : states.filter(s => s.alive !== false).length >= 4 ? 'bg-amber-400' : 'bg-rose-400'} animate-pulse`} />
+                <span className="text-sm text-zinc-200 font-mono tabular-nums font-bold">{states.filter(s => s.alive !== false).length}/8</span>
               </div>
             </div>
 
@@ -345,26 +342,42 @@ function App() {
           </div>
         </div>
 
-        {/* ═══ BOTTOM DOCK: Events / Trends / Trade ════════════════ */}
-        <div className="glass-card-glow flex flex-col" style={{ height: '380px', minHeight: '380px' }}>
+        {/* ═══ ROW 3: BOTTOM DOCK — Events / Trends / Trade ════════ */}
+        <div className="glass-card-glow flex flex-col" style={{ minHeight: '350px' }}>
           {/* Bottom tab bar */}
-          <div className="flex items-center gap-1.5 px-4 pt-3 pb-2 border-b border-white/[0.04]">
-            <TabBtn active={bottomTab === 'events'} label="Event Feed" onClick={() => setBottomTab('events')} />
-            <TabBtn active={bottomTab === 'trends'} label="Trends" onClick={() => setBottomTab('trends')} />
-            <TabBtn active={bottomTab === 'trade'} label="Trade Network" onClick={() => setBottomTab('trade')} />
-            {cycle > 50 && (
-              <TabBtn active={bottomTab === 'analysis'} label="Analysis" onClick={() => setBottomTab('analysis')} />
-            )}
+          <div className="flex items-center gap-1 px-5 pt-3 pb-0 border-b border-white/[0.06] flex-shrink-0">
+            {[
+              { key: 'events', label: 'Events' },
+              { key: 'trends', label: 'Trends' },
+              { key: 'trade',  label: 'Trade Network' },
+              ...(cycle > 50 ? [{ key: 'analysis', label: 'Analysis' }] : []),
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setBottomTab(tab.key)}
+                className={`relative px-7 py-3 text-[13px] font-bold transition-all rounded-t-xl
+                  ${bottomTab === tab.key
+                    ? 'text-violet-300 bg-violet-500/[0.1] border border-b-0 border-violet-400/25'
+                    : 'text-zinc-500 hover:text-zinc-300 border border-transparent hover:bg-white/[0.03]'
+                  }`}
+              >
+                {tab.label}
+                {bottomTab === tab.key && (
+                  <span className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400" />
+                )}
+              </button>
+            ))}
             <div className="flex-1" />
             {bottomTab === 'events' && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.03]">
-                <span className="text-[10px] text-zinc-500 font-mono tabular-nums">{events.length} events</span>
+              <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.06]">
+                <span className="w-2.5 h-2.5 rounded-full bg-violet-400 animate-pulse" />
+                <span className="text-[13px] text-zinc-300 font-mono tabular-nums font-semibold">{events.length} events</span>
               </div>
             )}
           </div>
 
           {/* Bottom content */}
-          <div className="flex-1 overflow-y-auto px-4 py-3">
+          <div className="overflow-y-auto px-5 py-4" style={{ minHeight: '280px' }}>
             {bottomTab === 'events' && <EventLog events={events} negotiations={negotiations} />}
             {bottomTab === 'trends' && <TrendCharts history={history} />}
             {bottomTab === 'trade' && <TradeNetwork trades={trades} alliances={alliances} negotiations={negotiations} />}

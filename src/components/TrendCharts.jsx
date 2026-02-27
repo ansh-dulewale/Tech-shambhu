@@ -58,31 +58,31 @@ const baseOptions = {
       display: true,
       position: 'bottom',
       labels: {
-        color: 'rgba(255,255,255,0.45)',
-        font: { size: 10, family: "'Inter', system-ui, sans-serif", weight: '500' },
-        boxWidth: 6,
-        boxHeight: 6,
-        padding: 14,
+        color: 'rgba(255,255,255,0.5)',
+        font: { size: 11, family: "'Inter', system-ui, sans-serif", weight: '500' },
+        boxWidth: 8,
+        boxHeight: 8,
+        padding: 16,
         usePointStyle: true,
         pointStyle: 'circle',
       }
     },
     tooltip: {
       backgroundColor: 'rgba(10,10,30,0.96)',
-      titleFont: { family: "'Inter', system-ui", size: 11, weight: '600' },
-      bodyFont: { family: "'Inter', system-ui", size: 10, weight: '400' },
+      titleFont: { family: "'Inter', system-ui", size: 12, weight: '600' },
+      bodyFont: { family: "'Inter', system-ui", size: 11, weight: '400' },
       titleColor: 'rgba(255,255,255,0.9)',
       bodyColor: 'rgba(255,255,255,0.65)',
       borderColor: 'rgba(139,92,246,0.2)',
       borderWidth: 1,
       cornerRadius: 10,
-      padding: { top: 10, bottom: 10, left: 14, right: 14 },
+      padding: { top: 12, bottom: 12, left: 16, right: 16 },
       mode: 'index',
       intersect: false,
       displayColors: true,
-      boxWidth: 6,
-      boxHeight: 6,
-      boxPadding: 4,
+      boxWidth: 8,
+      boxHeight: 8,
+      boxPadding: 5,
       usePointStyle: true,
     }
   },
@@ -95,19 +95,19 @@ const baseOptions = {
       grid: { color: 'rgba(255,255,255,0.02)', drawBorder: false },
       border: { display: false },
       ticks: {
-        color: 'rgba(255,255,255,0.25)',
-        font: { size: 9, family: "'Inter', system-ui" },
+        color: 'rgba(255,255,255,0.3)',
+        font: { size: 10, family: "'Inter', system-ui" },
         maxTicksLimit: 12,
-        padding: 6,
+        padding: 8,
       },
     },
     y: {
       grid: { color: 'rgba(255,255,255,0.025)', drawBorder: false },
       border: { display: false },
       ticks: {
-        color: 'rgba(255,255,255,0.25)',
-        font: { size: 9, family: "'Inter', system-ui" },
-        padding: 8,
+        color: 'rgba(255,255,255,0.3)',
+        font: { size: 10, family: "'Inter', system-ui" },
+        padding: 10,
       },
       min: 0,
     }
@@ -127,12 +127,12 @@ function ChartSection({ title, subtitle, accentColor, badge, children }) {
         <div className="flex items-center gap-2.5">
           <div className="w-1 h-5 rounded-full" style={{ background: accentColor }} />
           <div>
-            <h3 className="text-[13px] font-semibold text-white/90 tracking-tight">{title}</h3>
-            {subtitle && <p className="text-[9px] text-zinc-500 mt-0.5 uppercase tracking-wider">{subtitle}</p>}
+            <h3 className="text-sm font-semibold text-white/90 tracking-tight">{title}</h3>
+            {subtitle && <p className="text-[10px] text-zinc-500 mt-0.5 uppercase tracking-wider">{subtitle}</p>}
           </div>
         </div>
         {badge && (
-          <span className="text-[9px] px-2.5 py-1 rounded-lg font-semibold uppercase tracking-wider"
+          <span className="text-[10px] px-3 py-1 rounded-lg font-semibold uppercase tracking-wider"
             style={{ background: accentColor + '15', color: accentColor, border: `1px solid ${accentColor}20` }}>
             {badge}
           </span>
@@ -149,12 +149,12 @@ function ChartSection({ title, subtitle, accentColor, badge, children }) {
 /* ─── Stat Chip ─── */
 function StatChip({ label, value, subValue, color }) {
   return (
-    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05]">
-      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
-      <span className="text-[9px] text-zinc-500 uppercase tracking-wider font-medium">{label}</span>
-      <span className="text-[11px] font-bold tabular-nums font-mono" style={{ color }}>{value}</span>
+    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.05]">
+      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+      <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-medium">{label}</span>
+      <span className="text-xs font-bold tabular-nums font-mono" style={{ color }}>{value}</span>
       {subValue !== undefined && (
-        <span className="text-[9px] text-zinc-600 font-mono tabular-nums">({subValue})</span>
+        <span className="text-[10px] text-zinc-600 font-mono tabular-nums">({subValue})</span>
       )}
     </div>
   );
@@ -447,7 +447,7 @@ function TrendCharts({ history = [] }) {
             <StatChip label="Food" value={`${resStats.avgs.food}`} color="#6ee7b7" />
             <StatChip label="Energy" value={`${resStats.avgs.energy}`} color="#fcd34d" />
             <StatChip label="Land" value={`${resStats.avgs.land}`} color="#c4b5fd" />
-            <span className="text-[9px] text-zinc-600 ml-1">
+            <span className="text-[10px] text-zinc-600 ml-1">
               ⚠ Lowest: <span className="text-amber-400 font-semibold capitalize">{resStats.lowestRes[0]}</span>
             </span>
           </div>
